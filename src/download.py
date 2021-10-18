@@ -1,4 +1,71 @@
-from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
+import io
+import numpy as np
+import googlemaps
+import PIL.Image as pil
+from sentinelsat import SentinelAPI
+
+from gmaps import download_map_hd
+
+
+class GoogleMapsHDDownloader(object):
+
+    def __init__(self, top_left, right_button, zoom, folder):
+        self.lat_1, self.lng_1 = top_left
+        self.lat_2, self.lng_2 = right_button
+
+        self.zoom = zoom
+        self.folder = folder
+
+        self.tiles = None
+
+    def download(self):
+        self.tiles = download_map_hd(
+            lat_1=self.lat_1, lng_1=self.lng_1,
+            lat_2=self.lat_2, lng_2=self.lng_2,
+            zoom=self.zoom,
+            folder=self.folder
+        )
+
+    def merge(self, filename):
+        self._merge_and_save(filename)
+
+    def _merge_and_save(self, filename):
+        len_xy = int(np.sqrt(len(self.tiles)))
+        merged_pic = self._merge_tiles(self.tiles, len_xy, len_xy)
+        merged_pic = merged_pic.convert('RGB')
+        merged_pic.save(filename)
+
+    @staticmethod
+    def _merge_tiles(tiles, len_x, len_y):
+        merged_pic = pil.new('RGBA', (len_x * 256, len_y * 256))
+        for i, tile in enumerate(tiles):
+            tile_img = pil.open(io.BytesIO(tile))
+            y, x = i // len_x, i % len_x
+            merged_pic.paste(tile_img, (x * 256, y * 256))
+
+        return merged_pic
+
+
+class GoogleMapsAPIDownloader(object):
+    def __init__(self, key):
+        self.api = googlemaps.Client(key=key)
+
+    def download_map(self, output_file, size=(2000, 2000), zoom=10, scale=2, map_type='satellite', file_format='png'):
+        response = self.api.static_map(
+            size=size,
+            zoom=zoom,
+            center=(40.42793938593949, -3.7118178511306477),
+            maptype=map_type,
+            format=file_format,
+            scale=scale
+        )
+        self.save_response(response, output_file, file_format)
+
+    @staticmethod
+    def save_response(response, output_file, file_format):
+        with open(f'{output_file}.{file_format}', 'wb') as f:
+            for x in response:
+                f.write(x)
 
 
 class Sentinel2Downloader(object):
@@ -9,16 +76,17 @@ class Sentinel2Downloader(object):
 
     def request_products(
             self,
-            mission='S2A', level='MSIL2A', baseline_no='*',
-            relative_orbit_no='094', tile='30TVK',
-            year=2021, sort_by=None,
-            remove_offline=False
+            mission='S2A', level='MSIL2A',
+            baseline_no='*', relative_orbit_no='R094',
+            tile='T30TVK', year=2021
     ):
-        if sort_by is None:
-            sort_by = ['cloudcoverpercentage']
-
-        query_kwargs = {'raw': f'{mission}_{level}_{year}*_N{baseline_no}_R{relative_orbit_no}_T{tile}_{year}*'}
+        query_kwargs = {'raw': f'{mission}_{level}_{year}*_{baseline_no}_{relative_orbit_no}_{tile}_{year}*'}
         self.query = self.api.query(**query_kwargs)
+
+    def filter_products(self, sort_by=None, remove_offline=False):
+        if sort_by is None:
+            sort_by = ['title']
+
         products_df = self.api.to_dataframe(self.query)
 
         if remove_offline:

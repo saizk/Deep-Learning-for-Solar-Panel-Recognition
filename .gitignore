@@ -132,4 +132,5 @@ dmypy.json
 
 data
 docs
+tiles
 src/_*.py
