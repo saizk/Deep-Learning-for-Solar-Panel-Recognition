@@ -19,7 +19,7 @@ def download_gmaps_api():
     # print(response)
 
 
-def download_gmaps_hd(folder=r'.\torch'):
+def download_gmaps_hd(folder=r'.\tiles'):
 
     if not os.path.exists(folder):
         os.mkdir(folder)
