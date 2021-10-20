@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*
+
+import os
 import io
 import numpy as np
 import googlemaps
@@ -19,6 +22,10 @@ class GoogleMapsHDDownloader(object):
         self.tiles = None
 
     def download(self):
+
+        if not os.path.exists(self.folder):
+            os.mkdir(self.folder)
+
         self.tiles = download_map_hd(
             lat_1=self.lat_1, lng_1=self.lng_1,
             lat_2=self.lat_2, lng_2=self.lng_2,
@@ -30,7 +37,7 @@ class GoogleMapsHDDownloader(object):
         self._merge_and_save(filename)
 
     def _merge_and_save(self, filename):
-        len_xy = int(np.sqrt(len(self.tiles)))
+        len_xy = int(np.rint(np.sqrt(len(self.tiles))))
         merged_pic = self._merge_tiles(self.tiles, len_xy, len_xy)
         merged_pic = merged_pic.convert('RGB')
         merged_pic.save(filename)

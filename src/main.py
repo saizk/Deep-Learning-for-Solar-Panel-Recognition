@@ -1,4 +1,5 @@
-import os
+# -*- coding: utf-8 -*
+
 import time
 from download import Sentinel2Downloader, GoogleMapsAPIDownloader, GoogleMapsHDDownloader
 from _config import *
@@ -21,13 +22,10 @@ def download_gmaps_api():
 
 def download_gmaps_hd(folder=r'.\tiles'):
 
-    if not os.path.exists(folder):
-        os.mkdir(folder)
-
     gmaps = GoogleMapsHDDownloader(
         top_left=(40.65, -4.082),
         right_button=(40.047937, -3.292),
-        zoom=18,
+        zoom=16,
         folder=folder,
     )
     print('Downloading tiles...')
