@@ -12,9 +12,9 @@ from gmaps import download_map_hd
 
 class GoogleMapsHDDownloader(object):
 
-    def __init__(self, top_left, right_button, zoom, folder):
+    def __init__(self, top_left, right_bottom, zoom, folder):
         self.lat_1, self.lng_1 = top_left
-        self.lat_2, self.lng_2 = right_button
+        self.lat_2, self.lng_2 = right_bottom
 
         self.zoom = zoom
         self.folder = folder

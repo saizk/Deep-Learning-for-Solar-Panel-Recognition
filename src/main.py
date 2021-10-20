@@ -24,7 +24,7 @@ def download_gmaps_hd(folder=r'.\tiles'):
 
     gmaps = GoogleMapsHDDownloader(
         top_left=(40.65, -4.082),
-        right_button=(40.047937, -3.292),
+        right_bottom=(40.047937, -3.292),
         zoom=16,
         folder=folder,
     )
