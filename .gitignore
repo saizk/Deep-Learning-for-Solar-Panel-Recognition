@@ -130,7 +130,10 @@ dmypy.json
 
 .idea
 
-data
+data/*.z*
+data/Solar Panels
+data/Buildings
+
 docs
 tiles
 src/_*.py
