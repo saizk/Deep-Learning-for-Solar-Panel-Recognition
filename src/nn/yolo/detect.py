@@ -4,9 +4,7 @@ import glob
 import numpy as np
 from scipy.spatial import distance
 
-
 import yolov5.detect as yolo_eval
-# import nn.yolact.yolact.train as yolact_train
 
 
 def compute_iou_bb(box_a, box_b):
@@ -62,7 +60,7 @@ def yolo_testing(**kwargs):
     yolo_eval.run(**kwargs)
 
 
-def get_yolo_params(name, model='best.pt'):
+def get_yolo_params(name, model='best.pt', device='cuda:0'):
     return {
         'source': 'yolov5/data/solar_panels/test/images',
         'weights': model,
@@ -70,17 +68,16 @@ def get_yolo_params(name, model='best.pt'):
         'save_txt': True,
         'project': 'results',
         'name': name,
-        'device': 'cuda:0'
+        'device': device
     }
 
 
-def main(net='yolo'):
-
-    # if net == 'yolo':
-    #     for mname in os.listdir('models'):
-    #         params = get_yolo_params(mname, model=f'models/{mname}/weights/best.pt')
-    #         yolo_testing(**params)
-    compute_labels_accuracy()
+def main():
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    for mname in os.listdir('models'):
+        params = get_yolo_params(mname, model=f'models/{mname}/weights/best.pt', device=device)
+        yolo_testing(**params)
+    # compute_labels_accuracy()
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 In the terminal, cd to the project folder:
 1. pip install -r requirements.txt
-2. Change the nc parameter in models/yolov5m.yaml
-3. py train.py --img 256 --batch 32 --epochs 50 --data sp_dataset.yaml --weights yolov5m.pt
-4. py detect.py --img 256 --source data/solar_panels/test/images --weights best2.pt
+2. Extract solar_panels.zip contents in yolov5/data
+3. Configure training params in train.py and execute it with python train.py
+4. Configure testing params in detect.py and execute it with python detect.py
