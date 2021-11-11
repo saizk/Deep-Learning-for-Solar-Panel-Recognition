@@ -131,9 +131,24 @@ dmypy.json
 .idea
 
 data/*.z*
+data/raw
 data/Solar Panels
 data/Buildings
 
 docs
 tiles
+
 src/_*.py
+src/nn/mmdetection
+src/nn/yolact
+src/nn/yolo/models
+src/nn/yolo/results
+src/nn/yolo/yolov5/runs
+src/nn/yolo/yolov5/data/solar_panels/train
+src/nn/yolo/yolov5/data/solar_panels/val
+src/nn/yolo/yolov5/data/solar_panels/test
+
+*.zip
+*.pt
+*.npy
+hi

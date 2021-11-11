@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*
-
+import numpy as np
 import time
 from download import Sentinel2Downloader, GoogleMapsAPIDownloader, GoogleMapsHDDownloader
 from _config import *
+from utils import *
 
 
 def download_sent2():
@@ -22,12 +23,18 @@ def download_gmaps_api():
 
 def download_gmaps_hd(folder=r'.\tiles'):
 
+    madrid = np.array([(40.65, -4.082), (40.047937, -3.292)])
+    madrid_2 = np.array([(40.5, -3.94), (40.2, -3.5462)])
+    madrid_4 = np.array([(40.49, -3.84), (40.2775, -3.56)])
+    madrid_6 = np.array([(40.43, -3.74), (40.38, -3.68)])
+
     gmaps = GoogleMapsHDDownloader(
-        top_left=(40.65, -4.082),
-        right_bottom=(40.047937, -3.292),
-        zoom=16,
+        top_left=madrid_6[0],
+        right_bottom=madrid_6[1],
+        zoom=18,
         folder=folder,
     )
+
     print('Downloading tiles...')
     gmaps.download()
     # print('Merging tiles...')

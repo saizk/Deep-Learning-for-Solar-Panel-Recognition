@@ -1,35 +1,57 @@
 import os
+import glob
 import shutil
+from PIL import Image
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 
-def split_masks(img_folder, masks_folder, directory):
-    img_root = f'./{directory}'
-
-    for folder in os.listdir(img_root):
-        for filename in os.listdir(f'{img_root}/{folder}'):
-            src_path = f'{img_root}/{folder}/{filename}'
-
+def split_masks(img_folder, masks_folder, img_root):
+    for folder in glob.glob(img_root + r'\PV*'):
+        for filename in os.listdir(folder):
+            src_path = rf'{folder}\{filename}'
             if 'label' in filename:
-                shutil.move(src_path, f'{masks_folder}/{filename}')
+                shutil.move(src_path, rf'{masks_folder}\{filename}')
             else:
-                shutil.move(src_path, f'{img_folder}/{filename}')
+                shutil.move(src_path, rf'{img_folder}\{filename}')
 
-    shutil.rmtree(img_root)
+        shutil.rmtree(folder)
 
 
-def preprocess_folders(root_dir='Solar Panels', directories=['PV01', 'PV03', 'PV08']):
+def convert_to_png_parallel(folder='Solar Panels'):
+    for pvfolder in os.listdir(folder):
+        img_path, mask_path = f'{folder}/{pvfolder}/images', f'{folder}/{pvfolder}/masks'
+        with ThreadPoolExecutor(max_workers=64) as pool:
+            images = pool.map(
+                lambda img: Image.open(img).resize((256, 256)).save(f'{img_path}/{Path(img).stem}.png'),
+                glob.glob(f'{img_path}/*.bmp')
+            )
+            masks = pool.map(
+                lambda mask: Image.open(mask).resize((256, 256)).save(f'{mask_path}/{Path(mask).stem}.png'),
+                glob.glob(f'{mask_path}/*.png')
+            )
+    return list(images), list(masks)
 
-    root_dir = f'./{root_dir}'
-    os.mkdir(root_dir) if not os.path.exists(root_dir) else None
 
-    img_folder, masks_folder = f'{root_dir}/images', f'{root_dir}/masks'
-    os.mkdir(img_folder) if not os.path.exists(img_folder) else None
-    os.mkdir(masks_folder) if not os.path.exists(masks_folder) else None
+def remove_bmps(folder='Solar Panels'):
+    for pvfolder in os.listdir(folder):
+        img_path, mask_path = f'{folder}/{pvfolder}/images', f'{folder}/{pvfolder}/masks'
+        for img, mask in zip(glob.glob(f'{img_path}/*.bmp'), glob.glob(f'{mask_path}/*.bmp')):
+            os.remove(img)
+            os.remove(mask)
 
-    # directories = ['PV03', 'PV08']
-    for directory in directories:
-        split_masks(img_folder, masks_folder, directory)
+
+def preprocess_folders(root_dir='Solar Panels'):
+
+    for pvfolder in glob.glob(root_dir + '/*'):  # ['PV01', 'PV03', 'PV08']
+        img_folder, masks_folder = fr'{pvfolder}\images', rf'{pvfolder}\masks'
+        os.mkdir(img_folder) if not os.path.exists(img_folder) else None
+        os.mkdir(masks_folder) if not os.path.exists(masks_folder) else None
+
+        split_masks(img_folder, masks_folder, pvfolder)
 
 
 if __name__ == '__main__':
-    preprocess_folders()
+    # preprocess_folders()
+    # convert_to_png_parallel()
+    remove_bmps()
