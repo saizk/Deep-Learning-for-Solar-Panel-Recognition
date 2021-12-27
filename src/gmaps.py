@@ -6,7 +6,6 @@ import multiprocessing as mp
 import urllib.request as ur
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from utils import latlon2px, get_region_size
 
 
 def get_xy(lat, lng, zoom):
@@ -28,8 +27,8 @@ def get_xy(lat, lng, zoom):
     sin_y = math.sin(lat * (math.pi / 180.0))
 
     # Calculate the y coordinate
-    point_y = ((tile_size / 2) + 0.5 * math.log((1 + sin_y) / (1 - sin_y)) * -(
-            tile_size / (2 * math.pi))) * num_tiles // tile_size
+    point_y = ((tile_size / 2) + 0.5 * math.log((1 + sin_y) / (1 - sin_y)) *
+               - (tile_size / (2 * math.pi))) * num_tiles // tile_size
 
     return int(point_x), int(point_y)
 
@@ -136,7 +135,10 @@ def download_map_hd(lat_1, lng_1, lat_2, lng_2, zoom, style='s', folder='', exte
 
     pos1x, pos1y, pos2x, pos2y = latlon2px(lat_1, lng_1, lat_2, lng_2, zoom)
     len_x, len_y = get_region_size(pos1x, pos1y, pos2x, pos2y)
-    print(f"Total number of tiles：{len_x} X {len_y} = {len_x * len_y}")
+    print(f"Total number of tiles：{len_x} X {len_y}")
+    confirm = input(f'{len_x * len_y} images will be downloaded. Do you want to procede? ').lower()
+    if confirm not in ['y', 'yes']:
+        return
 
     urls = get_urls(pos1x, pos1y, len_x, len_y, zoom, style)
 

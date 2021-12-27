@@ -1,6 +1,0 @@
-classes=1
-train=data/solar_panels/train_yolo.txt
-valid=data/solar_panels/val_yolo.txt
-names=config/coco.names
-backup=backup/
-

@@ -4,7 +4,7 @@ import os
 import io
 import numpy as np
 import googlemaps
-import PIL.Image as pil
+from PIL import Image, ImageEnhance
 from sentinelsat import SentinelAPI
 
 from gmaps import download_map_hd
@@ -44,24 +44,32 @@ class GoogleMapsHDDownloader(object):
 
     @staticmethod
     def _merge_tiles(tiles, len_x, len_y):
-        merged_pic = pil.new('RGBA', (len_x * 256, len_y * 256))
+        merged_pic = Image.new('RGBA', (len_x * 256, len_y * 256))
         for i, tile in enumerate(tiles):
-            tile_img = pil.open(io.BytesIO(tile))
+            tile_img = Image.open(io.BytesIO(tile))
             y, x = i // len_x, i % len_x
             merged_pic.paste(tile_img, (x * 256, y * 256))
 
         return merged_pic
+
+    def sharpen(self, factor=2):
+        for file in os.listdir(self.folder):
+            fname = f'{self.folder}/{file}'
+            enhancer = ImageEnhance.Sharpness(Image.open(fname))
+            shp_img = enhancer.enhance(factor)
+            shp_img.save(fname)
 
 
 class GoogleMapsAPIDownloader(object):
     def __init__(self, key):
         self.api = googlemaps.Client(key=key)
 
-    def download_map(self, output_file, size=(2000, 2000), zoom=10, scale=2, map_type='satellite', file_format='png'):
+    def download_map(self, output_file, center=(40.428, -3.712), size=(2000, 2000),
+                     zoom=10, scale=2, map_type='satellite', file_format='png'):
         response = self.api.static_map(
             size=size,
             zoom=zoom,
-            center=(40.42793938593949, -3.7118178511306477),
+            center=center,
             maptype=map_type,
             format=file_format,
             scale=scale
@@ -110,4 +118,3 @@ class Sentinel2Downloader(object):
 
     def get_product_info(self, product_id):
         return self.api.get_product_odata(product_id)
-

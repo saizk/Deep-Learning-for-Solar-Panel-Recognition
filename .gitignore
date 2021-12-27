@@ -1,13 +1,13 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
 
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -19,13 +19,9 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -40,16 +36,12 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
 
 # Translations
 *.mo
@@ -57,16 +49,6 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -74,81 +56,58 @@ docs/_build/
 # PyBuilder
 target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
+# DotEnv configuration
 .env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
+# Database
+*.db
+*.rdb
 
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
+# Pycharm
 .idea
 
-data/*.z*
-data/raw
-data/Solar Panels
-data/Buildings
+# VS Code
+.vscode/
 
-docs
-tiles
+# Spyder
+.spyproject/
+
+# Jupyter NB Checkpoints
+.ipynb_checkpoints/
+
+# exclude data from source control by default
+/data/
+
+# Mac OS-specific storage files
+.DS_Store
+
+# vim
+*.swp
+*.swo
+
+# Mypy cache
+.mypy_cache/
+
 
 src/_*.py
-src/nn/mmdetection
-src/nn/yolact
-src/nn/yolo/models
-src/nn/yolo/results
-src/nn/yolo/yolov5/runs
-src/nn/yolo/yolov5/data/solar_panels/train
-src/nn/yolo/yolov5/data/solar_panels/val
-src/nn/yolo/yolov5/data/solar_panels/test
+src/tiles
+src/data/*.z*
+src/data/raw
+src/data/Solar Panels
+src/data/Buildings
+
+src/models/yolo/models
+src/models/yolo/results
+src/models/yolo/wandb
+src/models/yolo/yolov5/runs
+src/models/yolo/yolov5/data/solar_panels/ground_truth
+src/models/yolo/yolov5/data/solar_panels/images
+src/models/yolo/yolov5/data/solar_panels/labels
+src/models/yolo/yolov5/data/solar_panels/tiles*
+
+src/models/img-segm/data
 
 *.zip
 *.pt
 *.npy
-hi
+*.docx

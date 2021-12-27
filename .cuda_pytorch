@@ -1,7 +1,0 @@
-pip3 install torch==1.10.0+cu113 torchvision==0.11.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
-
-conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
-pip install openmim
-mim install mmdet
-
-pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html

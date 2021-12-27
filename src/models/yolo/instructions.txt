@@ -1,0 +1,5 @@
+In the terminal, cd to the project folder:
+1. pip install -r requirements.txt
+2. Extract solar_panels.zip contents in yolov5/data
+3. Configure training params in train.py and execute it with python train.py
+4. Configure testing params in detect.py and execute it with python detect.py

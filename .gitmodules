@@ -1,3 +1,0 @@
-[submodule "src/nn/yolo/yolov5"]
-	path = src/nn/yolo/yolov5
-	url = https://github.com/ultralytics/yolov5
