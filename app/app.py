@@ -70,7 +70,12 @@ preprocess_input = sm.get_preprocessing(BACKBONE)
 sm.set_framework('tf.keras')
 
 
+#@st.cache(allow_output_mutation=False,ttl=24*60*60)
+#def get_model(model_path):
+#    model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
+#    model.load_weights(f'{model_path}')
 
+#    return model
 
 @st.cache(allow_output_mutation=True)
 def get_test_augmentation():
@@ -149,9 +154,6 @@ else:
     st.sidebar.markdown("Remove the file above first to use our images.")
 
 st.sidebar.markdown("""
-
-
-
 ### Authors:
 - Sergio Aizcorbe Pardo
 - Ricardo Chavez Torres
@@ -159,6 +161,7 @@ st.sidebar.markdown("""
 - Daniel De Las Cuevas Turel
 - Zijun He
 """)
+
 # ---------------------------------#
 # Main panel
 
@@ -169,6 +172,7 @@ activation = 'sigmoid'
 # create model
 model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
 model.load_weights(f'{model_path}')
+#model = get_model(model_path)
 
 if uploaded_file is not None:
     # st.write(uploaded_file)
@@ -193,6 +197,17 @@ if uploaded_file is not None:
             pr_mask = model.predict(image).round()
 
             st.image(pr_mask, caption='Predicted Mask')
+
+    with col3:
+        st.subheader('3. Related Data')
+        st.write(
+            """
+            **Area predicted**:...
+
+            **Coordinates**:...
+            """
+        )
+
 
 elif pre_trained_img !='None':
         col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
