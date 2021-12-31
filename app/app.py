@@ -1,3 +1,5 @@
+import gc
+
 import streamlit as st
 import numpy as np
 import albumentations as A
@@ -63,7 +65,7 @@ def imgread_preprocessing(uploaded_img):  # final preprocessing function in stre
     return image
 
 
-model_path = '../models/best_model.h5'
+model_path = './models/best_model.h5'
 BACKBONE = 'efficientnetb3'
 CLASSES = ['solar_panel']
 preprocess_input = sm.get_preprocessing(BACKBONE)
@@ -148,17 +150,17 @@ if uploaded_file is None:
             testfiles)
         if pre_trained_img != "None":
 
-            selected_img = "../data/test/images/" + pre_trained_img
+            selected_img = "./data/test/images/" + pre_trained_img
 
 else:
     st.sidebar.markdown("Remove the file above first to use our images.")
 
 st.sidebar.markdown("""
 ### Authors:
-- Sergio Aizcorbe Pardo
-- Ricardo Chavez Torres
-- Sergio Hidalgo López
 - Daniel De Las Cuevas Turel
+- Ricardo Chavez Torres
+- Sergio Aizcorbe Pardo
+- Sergio Hidalgo López
 - Zijun He
 """)
 
@@ -169,47 +171,53 @@ st.sidebar.markdown("""
 n_classes = 1
 activation = 'sigmoid'
 
-# create model
-model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
-model.load_weights(f'{model_path}')
-#model = get_model(model_path)
-
-if uploaded_file is not None:
-    # st.write(uploaded_file)
-    col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
-
-    with col1:  # visualize
-        st.subheader('1.Visualize Image')
-        with st.spinner(text="Loading the image..."):
-            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-            uploaded_file = cv2.imdecode(file_bytes, 1)
-            image = cv2.resize(uploaded_file, (256, 256))
-
-            st.image(
-                image,
-                caption='Image Uploaded')
-
-    with col2:  # classify
-        st.subheader('2. Model Prediction')
-        with st.spinner(text="The model is running..."):
-            img = imgread_preprocessing(uploaded_file)
-            image = np.expand_dims(img, axis=0)
-            pr_mask = model.predict(image).round()
-
-            st.image(pr_mask, caption='Predicted Mask')
-
-    with col3:
-        st.subheader('3. Related Data')
-        st.write(
-            """
-            **Area predicted**:...
-
-            **Coordinates**:...
-            """
-        )
+def deploy1(uploaded_file):
+        # create model
+        model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
+        model.load_weights(f'{model_path}')
+        #model = get_model(model_path)
 
 
-elif pre_trained_img !='None':
+        # st.write(uploaded_file)
+        col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
+
+        with col1:  # visualize
+            st.subheader('1.Visualize Image')
+            with st.spinner(text="Loading the image..."):
+                file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+                uploaded_file = cv2.imdecode(file_bytes, 1)
+                image = cv2.resize(uploaded_file, (256, 256))
+
+                st.image(
+                    image,
+                    caption='Image Uploaded')
+
+        with col2:  # classify
+            st.subheader('2. Model Prediction')
+            with st.spinner(text="The model is running..."):
+                img = imgread_preprocessing(uploaded_file)
+                image = np.expand_dims(img, axis=0)
+                pr_mask = model.predict(image).round()
+
+                st.image(pr_mask, caption='Predicted Mask')
+
+        with col3:
+            st.subheader('3. Related Data')
+            st.write(
+                """
+                **Area predicted**:...
+    
+                **Coordinates**:...
+                """
+            )
+        del model
+        gc.collect()
+
+
+def deploy2(selected_img):
+        model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
+        model.load_weights(f'{model_path}')
+
         col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
 
         with col1:  # visualize
@@ -240,3 +248,12 @@ elif pre_trained_img !='None':
                 **Coordinates**:...
                 """
             )
+
+        del model
+        gc.collect()
+
+if uploaded_file is not None:
+    deploy1(uploaded_file)
+elif pre_trained_img != 'None':
+    deploy2(selected_img)
+

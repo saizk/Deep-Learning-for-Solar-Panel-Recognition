@@ -3,16 +3,7 @@
 # external requirements
 segmentation_models
 streamlit
-opencv-python
+opencv-python--headless
 albumentations
-pycocotools==2.0.2
-tensorboard
-pdoc3
-click
-Sphinx
-coverage
-awscli
-flake8
 python-dotenv
 tensorflow-gpu
-scipy
