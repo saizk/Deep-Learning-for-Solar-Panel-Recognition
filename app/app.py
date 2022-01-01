@@ -179,7 +179,7 @@ if uploaded_file is None:
             index = 1,
         )
         if pre_trained_img != "None":
-            selected_img = "./data/test/images/" + pre_trained_img
+            selected_img = "./src/data/test/" + pre_trained_img
 
 
 else:
