@@ -1,11 +1,11 @@
 import gc
 
 import streamlit as st
-import numpy as np
-import albumentations as A
-import segmentation_models as sm
 import cv2
-
+import numpy as np
+import torch
+import albumentations as A
+import segmentation_models_pytorch as smp
 
 # ---------------------------------#
 # Page layout
@@ -65,19 +65,22 @@ def imgread_preprocessing(uploaded_img):  # final preprocessing function in stre
     return image
 
 
-model_path = './models/best_model.h5'
-BACKBONE = 'efficientnetb3'
+ARCHITECTURE = smp.DeepLabV3Plus
+BACKBONE = 'efficientnet-b3'
+EPOCHS = 25
+DEVICE='cpu'
+model_path = f'./models/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_model_{EPOCHS}.pth'
 CLASSES = ['solar_panel']
-preprocess_input = sm.get_preprocessing(BACKBONE)
-sm.set_framework('tf.keras')
+preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
 
 
-#@st.cache(allow_output_mutation=False,ttl=24*60*60)
-#def get_model(model_path):
-#    model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
-#    model.load_weights(f'{model_path}')
+# sm.set_framework('tf.keras')
 
-#    return model
+
+@st.cache(allow_output_mutation=False, ttl=24 * 60 * 60)
+def get_model(model, backbone, n_classes, activation):
+    return model(backbone, classes=n_classes, activation=activation)
+
 
 @st.cache(allow_output_mutation=True)
 def get_test_augmentation():
@@ -88,6 +91,9 @@ def get_test_augmentation():
     ]
     return A.Compose(test_transform)
 
+@st.cache(allow_output_mutation=True)
+def to_tensor(x, **kwargs):
+    return x.transpose(2, 0, 1).astype('float32')
 
 @st.cache(allow_output_mutation=True)
 def get_preprocessing(preprocessing_fn):
@@ -103,8 +109,10 @@ def get_preprocessing(preprocessing_fn):
 
     _transform = [
         A.Lambda(image=preprocessing_fn),
+        A.Lambda(image=to_tensor, mask=to_tensor),
     ]
     return A.Compose(_transform)
+
 
 # Formatting ---------------------------------#
 
@@ -135,33 +143,58 @@ with st.sidebar.header('1. Upload your image'):
 st.sidebar.markdown("")
 
 testfiles = ['None',
-            'PV01_325206_1204151.png',
+             'PV01_325206_1204151.png',
              'PV01_325206_1204186.png',
              'PV01_325574_1204564.png',
              'PV03_315173_1194612.png',
-             'PV08_332400_1179443.png'
+             'PV08_332400_1179443.png',
+             "tile_5_18.png",
+             "tile_9_4.png",
+             "tile_13_8.png",
+             "tile_21_10.png",
+
 
              ]
+
+file_gts = {
+    "PV01_325206_1204151" : "Zenodo",
+    "PV01_325206_1204186" : "Zenodo",
+    "PV01_325574_1204564" : "Zenodo",
+    "PV03_315173_1194612" : "Zenodo",
+    "PV08_332400_1179443" : "Zenodo",
+    "tile_5_18" : 'GoogleMap',
+    "tile_9_4" : 'GoogleMap',
+    "tile_13_8" : 'GoogleMap',
+    "tile_21_10" : 'GoogleMap',
+
+
+}
 
 if uploaded_file is None:
     with st.sidebar.header('2. Or use an image from our test set'):
         pre_trained_img = st.sidebar.selectbox(
             'Select an image',
-            testfiles)
+            testfiles,
+            format_func = lambda x: f'{x} ({(file_gts.get(x.replace(".png", "")))})' if ".png" in x else x,
+            index = 1,
+        )
         if pre_trained_img != "None":
-
             selected_img = "./data/test/images/" + pre_trained_img
+
 
 else:
     st.sidebar.markdown("Remove the file above first to use our images.")
 
 st.sidebar.markdown("""
-### Authors:
+###
+### Developers:
+
 - Daniel De Las Cuevas Turel
 - Ricardo Chavez Torres
+- Zijun He
 - Sergio Aizcorbe Pardo
 - Sergio Hidalgo López
-- Zijun He
+
 """)
 
 # ---------------------------------#
@@ -171,86 +204,94 @@ st.sidebar.markdown("""
 n_classes = 1
 activation = 'sigmoid'
 
+
 def deploy1(uploaded_file):
-        # create model
-        model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
-        model.load_weights(f'{model_path}')
-        #model = get_model(model_path)
+    # create model
+    # model = get_model(ARCHITECTURE, BACKBONE, n_classes, activation)
+    model = torch.load(f'{model_path}',map_location ='cpu')
+    # model = get_model(model_path)
 
+    # st.write(uploaded_file)
+    col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
 
-        # st.write(uploaded_file)
-        col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
+    with col1:  # visualize
+        st.subheader('1.Visualize Image')
+        with st.spinner(text="Loading the image..."):
+            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+            uploaded_file = cv2.imdecode(file_bytes, 1)
+            image = cv2.resize(uploaded_file, (256, 256))
 
-        with col1:  # visualize
-            st.subheader('1.Visualize Image')
-            with st.spinner(text="Loading the image..."):
-                file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-                uploaded_file = cv2.imdecode(file_bytes, 1)
-                image = cv2.resize(uploaded_file, (256, 256))
+            st.image(
+                image,
+                caption='Image Uploaded')
 
-                st.image(
-                    image,
-                    caption='Image Uploaded')
+    with col2:  # classify
+        st.subheader('2. Model Prediction')
+        with st.spinner(text="The model is running..."):
+            img = imgread_preprocessing(uploaded_file)
+            # image = np.expand_dims(img, axis=0)
+            image = torch.from_numpy(img).to(DEVICE).unsqueeze(0)
+            pr_mask = model.predict(image)
+            pr_mask = (pr_mask.squeeze().numpy().round())
 
-        with col2:  # classify
-            st.subheader('2. Model Prediction')
-            with st.spinner(text="The model is running..."):
-                img = imgread_preprocessing(uploaded_file)
-                image = np.expand_dims(img, axis=0)
-                pr_mask = model.predict(image).round()
+            st.image(pr_mask, caption='Predicted Mask')
 
-                st.image(pr_mask, caption='Predicted Mask')
+    with col3:
+        st.subheader('3. Related Data')
+        st.write(
+            """
+            **Area predicted**:...
 
-        with col3:
-            st.subheader('3. Related Data')
-            st.write(
-                """
-                **Area predicted**:...
-    
-                **Coordinates**:...
-                """
-            )
-        del model
-        gc.collect()
+            **Coordinates**:...
+            """
+        )
+    del model
+    gc.collect()
 
 
 def deploy2(selected_img):
-        model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
-        model.load_weights(f'{model_path}')
+    # model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
+    # model.load_weights(f'{model_path}')
 
-        col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
+    # model = get_model(ARCHITECTURE, BACKBONE, n_classes, activation)
+    model = torch.load(f'{model_path}',map_location ='cpu')
 
-        with col1:  # visualize
-            st.subheader('1.Visualize Image')
-            with st.spinner(text="Loading the image..."):
-                selected_img = cv2.imread(selected_img)
-                image = cv2.resize(selected_img, (256, 256))
+    col1, col2, col3 = st.columns((0.4, 0.4, 0.2))
 
-                st.image(
-                    image,
-                    caption='Image Selected')
+    with col1:  # visualize
+        st.subheader('1.Visualize Image')
+        with st.spinner(text="Loading the image..."):
+            selected_img = cv2.imread(selected_img)
+            image = cv2.resize(selected_img, (256, 256))
 
-        with col2:  # classify
-            st.subheader('2. Model Prediction')
-            with st.spinner(text="The model is running..."):
-                img = imgread_preprocessing(selected_img)
-                image = np.expand_dims(img, axis=0)
-                pr_mask = model.predict(image).round()
+            st.image(
+                image,
+                caption='Image Selected')
 
-                st.image(pr_mask, caption='Predicted Mask')
+    with col2:  # classify
+        st.subheader('2. Model Prediction')
+        with st.spinner(text="The model is running..."):
+            img = imgread_preprocessing(selected_img)
+            # image = np.expand_dims(img, axis=0)
+            image = torch.from_numpy(img).to(DEVICE).unsqueeze(0)
+            pr_mask = model.predict(image)
+            pr_mask = (pr_mask.squeeze().numpy().round())
 
-        with col3:
-            st.subheader('3. Related Data')
-            st.write(
-                """
-                **Area predicted**:...
-                
-                **Coordinates**:...
-                """
-            )
+            st.image(pr_mask, caption='Predicted Mask')
 
-        del model
-        gc.collect()
+    with col3:
+        st.subheader('3. Related Data')
+        st.write(
+            """
+            **Area predicted**:...
+
+            **Coordinates**:...
+            """
+        )
+
+    del model
+    gc.collect()
+
 
 if uploaded_file is not None:
     deploy1(uploaded_file)

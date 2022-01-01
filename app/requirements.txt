@@ -1,9 +1,14 @@
 # local package
 
 # external requirements
-segmentation_models
 streamlit
 opencv-python--headless
 albumentations
 python-dotenv
-tensorflow-gpu
+torchvision
+torch
+pretrainedmodels==0.7.4
+efficientnet-pytorch==0.6.3
+timm==0.4.12
+tqdm
+
