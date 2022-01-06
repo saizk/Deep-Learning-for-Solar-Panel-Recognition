@@ -89,12 +89,17 @@ target/
 .mypy_cache/
 
 
+models
+
 src/_*.py
 src/tiles
+
 src/data/*.z*
 src/data/raw
 src/data/Solar Panels
 src/data/Buildings
+
+src/models/data
 
 src/models/yolo/models
 src/models/yolo/results
@@ -104,8 +109,6 @@ src/models/yolo/yolov5/data/solar_panels/ground_truth
 src/models/yolo/yolov5/data/solar_panels/images
 src/models/yolo/yolov5/data/solar_panels/labels
 src/models/yolo/yolov5/data/solar_panels/tiles*
-
-src/models/img-segm/data
 
 *.zip
 *.pt

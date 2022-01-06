@@ -10,6 +10,7 @@ python-dotenv>=0.5.1
 
 sentinelsat==1.1.0
 googlemaps==4.5.3
+jupyter
 pandas==1.1.5
 seaborn>=0.11.0
 tabulate==0.8.9
@@ -23,3 +24,10 @@ tensorboard>=2.4.1
 albumentations>=1.1.0
 pycocotools==2.0.2
 
+pretrainedmodels==0.7.4
+efficientnet-pytorch==0.6.3
+timm==0.4.12
+
+tqdm
+opencv-python-headless
+segmentation-models-pytorch
