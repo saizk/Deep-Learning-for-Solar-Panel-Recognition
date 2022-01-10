@@ -30,4 +30,4 @@ timm==0.4.12
 
 tqdm
 opencv-python-headless
-segmentation-models-pytorch
+# segmentation-models-pytorch
