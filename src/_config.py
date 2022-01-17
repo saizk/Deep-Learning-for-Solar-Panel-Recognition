@@ -1,5 +1,0 @@
-
-GMAPS_KEY = 'AIzaSyC_QbwZ2WO1bBABsQvVTqguARFHpnBuPs4'
-
-CPC_USERNAME = 'saizk'
-CPC_PASSWORD = 'testing123'

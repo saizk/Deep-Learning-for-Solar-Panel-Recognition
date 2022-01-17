@@ -88,15 +88,14 @@ target/
 # Mypy cache
 .mypy_cache/
 
-
-
-#src/_*.py
+src/_*.py
 src/tiles
 
 src/data/*.z*
 src/data/raw
 src/data/Solar Panels
 src/data/Buildings
+src/data/tiles
 
 src/models/data
 

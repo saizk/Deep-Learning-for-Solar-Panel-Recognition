@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*
 import os
-
-import numpy as np
 import time
-from download import Sentinel2Downloader, GoogleMapsAPIDownloader, GoogleMapsHDDownloader
+import numpy as np
+
+from download import Sentinel2Downloader, GoogleMapsAPIDownloader, GoogleMapsWebDownloader
 from _config import *
 
 
@@ -18,13 +18,13 @@ def download_sent2():
 
 def download_gmaps_api():
     api = GoogleMapsAPIDownloader(GMAPS_KEY)
-    api.download_map('test', center=(40.43, -3.71),
-                     size=(4000, 4000), zoom=12, scale=5)
+    response = api.download_map(center=(40.43, -3.71),
+                                size=(4000, 4000), zoom=12, scale=5)
+    api.save_response(response, 'test.png')
     # print(response)
 
 
 def download_gmaps_hd(folder=r'.\tiles'):
-
     madrid = np.array([(40.65, -4.082), (40.047937, -3.292)])
     madrid_2 = np.array([(40.5, -3.94), (40.2, -3.5462)])
     madrid_4 = np.array([(40.49, -3.84), (40.2775, -3.56)])
@@ -34,7 +34,7 @@ def download_gmaps_hd(folder=r'.\tiles'):
 
     bajo_b = [(40.340092, -3.777754), (40.336984, -3.769861)]
 
-    gmaps = GoogleMapsHDDownloader(
+    gmaps = GoogleMapsWebDownloader(
         top_left=bajo_b[0],
         right_bottom=bajo_b[1],
         zoom=20,
@@ -57,7 +57,7 @@ def main():
     final_time = time.time() - start_time
     total_files = len(os.listdir(folder))
     print(f'\nDownloaded files: {total_files}')
-    print(f'{total_files/final_time} files/second')
+    print(f'{total_files / final_time} files/second')
     print(f'Elapsed time: {final_time}s')
 
 

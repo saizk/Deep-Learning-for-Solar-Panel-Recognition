@@ -10,7 +10,7 @@ from sentinelsat import SentinelAPI
 from gmaps import download_map_hd
 
 
-class GoogleMapsHDDownloader(object):
+class GoogleMapsWebDownloader(object):
 
     def __init__(self, top_left, right_bottom, zoom, folder):
         self.lat_1, self.lng_1 = top_left
@@ -22,7 +22,6 @@ class GoogleMapsHDDownloader(object):
         self.tiles = None
 
     def download(self):
-
         if not os.path.exists(self.folder):
             os.mkdir(self.folder)
 
@@ -64,9 +63,9 @@ class GoogleMapsAPIDownloader(object):
     def __init__(self, key):
         self.api = googlemaps.Client(key=key)
 
-    def download_map(self, output_file, center=(40.428, -3.712), size=(2000, 2000),
+    def download_map(self, center=(40.428, -3.712), size=(2000, 2000),
                      zoom=10, scale=2, map_type='satellite', file_format='png'):
-        response = self.api.static_map(
+        return self.api.static_map(
             size=size,
             zoom=zoom,
             center=center,
@@ -74,11 +73,10 @@ class GoogleMapsAPIDownloader(object):
             format=file_format,
             scale=scale
         )
-        self.save_response(response, output_file, file_format)
 
     @staticmethod
-    def save_response(response, output_file, file_format):
-        with open(f'{output_file}.{file_format}', 'wb') as f:
+    def save_response(response, output_file):
+        with open(output_file, 'wb') as f:
             for x in response:
                 f.write(x)
 
