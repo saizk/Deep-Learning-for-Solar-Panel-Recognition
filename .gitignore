@@ -95,9 +95,10 @@ src/data/*.z*
 src/data/raw
 src/data/Solar Panels
 src/data/Buildings
-src/data/tiles
+src/data/tiles*
 
 src/models/data
+src/models/results
 
 src/models/yolo/models
 src/models/yolo/results
