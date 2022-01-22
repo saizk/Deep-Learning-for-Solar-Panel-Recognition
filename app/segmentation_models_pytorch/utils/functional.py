@@ -124,15 +124,3 @@ def recall(pr, gt, eps=1e-7, threshold=None, ignore_channels=None):
     score = (tp + eps) / (tp + fn + eps)
 
     return score
-
-
-def binary_focal_loss(pr, gt, eps=1e-7, threshold=None, gamma=2.0, alpha=0.25, ignore_channels=None):
-
-    pr = _threshold(pr, threshold=threshold)
-    pr, gt = _take_channels(pr, gt, ignore_channels=ignore_channels)
-
-    pr = torch.clip(pr, eps, 1.0 - eps)
-    loss_1 = - gt * (alpha * torch.pow((1 - pr), gamma) * torch.log(pr))
-    loss_0 = - (1 - gt) * ((1 - alpha) * torch.pow(pr, gamma) * torch.log(1 - pr))
-    loss = torch.mean(loss_0 + loss_1)
-    return loss

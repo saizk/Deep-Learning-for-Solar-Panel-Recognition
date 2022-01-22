@@ -1,0 +1,14 @@
+# local package
+
+# external requirements
+streamlit
+opencv-python--headless
+albumentations
+python-dotenv
+torchvision
+torch
+pretrainedmodels
+efficientnet-pytorch==0.6.3
+timm==0.4.12
+tqdm
+

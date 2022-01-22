@@ -6,12 +6,10 @@ from torch.nn.modules.loss import _Loss
 from ._functional import soft_dice_score, to_tensor
 from .constants import BINARY_MODE, MULTICLASS_MODE, MULTILABEL_MODE
 
-from ..utils import base
-
 __all__ = ["DiceLoss"]
 
 
-class DiceLoss(_Loss, base.Loss):
+class DiceLoss(_Loss):
 
     def __init__(
         self,

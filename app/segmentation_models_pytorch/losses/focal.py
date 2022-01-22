@@ -6,12 +6,10 @@ from torch.nn.modules.loss import _Loss
 from ._functional import focal_loss_with_logits
 from .constants import BINARY_MODE, MULTICLASS_MODE, MULTILABEL_MODE
 
-from ..utils import base
-
 __all__ = ["FocalLoss"]
 
 
-class FocalLoss(_Loss, base.Loss):
+class FocalLoss(_Loss):
 
     def __init__(
         self,
