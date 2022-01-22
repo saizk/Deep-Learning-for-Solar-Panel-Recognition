@@ -97,7 +97,9 @@ src/data/Solar Panels
 src/data/Buildings
 src/data/tiles*
 
-src/models/data
+src/models/data/train
+src/models/data/val
+src/models/data/gmaps
 src/models/results
 
 src/models/yolo/models
