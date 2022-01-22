@@ -92,14 +92,13 @@ src/_*.py
 src/tiles
 
 src/data/*.z*
-src/data/raw
 src/data/Solar Panels
 src/data/Buildings
 src/data/tiles*
+src/data/train
+src/data/val
+src/data/gmaps
 
-src/models/data/train
-src/models/data/val
-src/models/data/gmaps
 src/models/results
 
 src/models/yolo/models

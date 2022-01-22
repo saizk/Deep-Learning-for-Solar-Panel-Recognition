@@ -26,8 +26,8 @@ preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
 n_classes = 1
 activation = 'sigmoid'
 
-img_dir = './src/models/data/test/images'
-mask_dir = './src/models/data/test/masks'
+img_dir = './src/data/test/images'
+mask_dir = './src/data/test/masks'
 img_files = os.listdir(img_dir)
 mask_files = os.listdir(mask_dir)
 
@@ -44,7 +44,7 @@ def use_image_from_test():
             img_path = st.sidebar.selectbox(
                 'Select an image',
                 test_files,
-                format_func=lambda x: f'{x.split("_")[-1]} ({(file_gts.get(x.replace(".png", "")))})' if ".png" in x else x,
+                format_func=lambda x: f'{x.split("/")[-1]} ({(file_gts.get(x) or "None")})',
                 index=1,
             )
             mask_path = img_path.replace('.png', '_label.png').replace(img_dir, mask_dir)
@@ -104,7 +104,24 @@ with st.sidebar.header('1. Upload your image'):
 
 st.sidebar.markdown("")
 
-img_path, mask_path = use_image_from_test()
+# img_path, mask_path = use_image_from_test()
+if uploaded_file is None:
+    with st.sidebar.header('2. Or use an image from our test set'):
+        img_path = st.sidebar.selectbox(
+            'Select an image',
+            test_files,
+            format_func=lambda x: f'{x.split("/")[-1]} ({(file_gts.get(x) or "None")})',
+            index=1,
+        )
+        mask_path = img_path.replace('.png', '_label.png').replace(img_dir, mask_dir)
+        # mask_path = os.path.join(mask_dir, mask_name)
+        print(mask_path)
+        if not os.path.exists(mask_path):
+            mask_path = 'None'
+
+else:
+    st.sidebar.markdown("Remove the file above first to use our images.")
+
 
 st.sidebar.markdown("""
 ###
@@ -153,7 +170,7 @@ def deploy1(uploaded_file, device='cpu'):
             image = torch.from_numpy(img).to(DEVICE).unsqueeze(0)
             pr_mask = model.predict(image)
             pr_mask = (pr_mask.squeeze().numpy().round())
-            prob = model(image)
+            prob = model(image).detach().numpy()
             ann = np.argmax(prob)
             print(prob)
             print(ann)
