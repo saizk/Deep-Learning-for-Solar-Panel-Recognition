@@ -20,14 +20,14 @@ ARCHITECTURE = smp.UnetPlusPlus
 BACKBONE = 'se_resnext101_32x4d'
 EPOCHS = 50
 DEVICE = 'cpu'
-model_path = f'../models/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_model_{EPOCHS}.pth'
+model_path = f'./models/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_model_{EPOCHS}.pth'
 CLASSES = ['solar_panel']
 preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
 n_classes = 1
 activation = 'sigmoid'
 
-img_dir = '../src/models/data/test/images'
-mask_dir = '../src/models/data/test/masks'
+img_dir = './src/models/data/test/images'
+mask_dir = './src/models/data/test/masks'
 img_files = os.listdir(img_dir)
 mask_files = os.listdir(mask_dir)
 
@@ -51,7 +51,7 @@ def use_image_from_test():
             # mask_path = os.path.join(mask_dir, mask_name)
             print(mask_path)
             if not os.path.exists(mask_path):
-                mask_path = None
+                mask_path = 'None'
         return img_path, mask_path
 
     else:
@@ -200,18 +200,20 @@ def deploy2(img_path, mask_path, device='cpu'):
             # image = np.expand_dims(img, axis=0)
             image = torch.from_numpy(img).to(DEVICE).unsqueeze(0)
             pr_mask = model.predict(image)
-            # gt_mask_dir = img_path.replace('.png', '_label.png')
-            gt_mask = mask_read_local(mask_path)
-            print("GT", gt_mask.shape)
-
             pr_mask = (pr_mask.squeeze().numpy().round())
-            print(gt_mask)
-            intersection = np.logical_and(pr_mask, gt_mask)
-            union = np.logical_or(pr_mask, gt_mask)
-            iou_score = np.round(np.sum(intersection) / np.sum(union), 2)
-            print('IoU is %s' % iou_score)
+            # gt_mask_dir = img_path.replace('.png', '_label.png')
             st.image(pr_mask, caption='Predicted Mask')
-            st.image(gt_mask, caption='Ground Truth Mask')
+            if mask_path != 'None':
+                gt_mask = mask_read_local(mask_path)
+                print("GT", gt_mask.shape)
+                print(gt_mask)
+
+                intersection = np.logical_and(pr_mask, gt_mask)
+                union = np.logical_or(pr_mask, gt_mask)
+                iou_score = np.round(np.sum(intersection) / np.sum(union), 2)
+                print('IoU is %s' % iou_score)
+                # st.image(pr_mask, caption='Predicted Mask')
+                st.image(gt_mask, caption='Ground Truth Mask')
 
     with col3:
         st.subheader('Model Performance')
