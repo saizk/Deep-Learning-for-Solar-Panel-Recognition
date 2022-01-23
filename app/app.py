@@ -1,15 +1,15 @@
-import copy
 import gc
 import os
-from pathlib import Path
+import copy
 import sklearn
-import streamlit as st
 import cv2
-import numpy as np
 import torch
+import numpy as np
 import albumentations as A
-# from sklearn.metrics import jaccard_score
 import skimage.measure as km
+import streamlit as st
+from pathlib import Path
+# from sklearn.metrics import jaccard_score
 from matplotlib import pyplot as plt
 
 import segmentation_models_pytorch as smp
@@ -238,7 +238,7 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = "data"
+img_dir = "app/data"
 img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
 file_gts = {
@@ -265,7 +265,7 @@ ARCHITECTURE = smp.DeepLabV3Plus
 BACKBONE = 'efficientnet-b3'
 EPOCHS = 25
 DEVICE = 'cpu'
-model_dir = 'models'
+model_dir = 'app/models'
 model_path = f'{model_dir}/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_{EPOCHS}ep.pth'
 CLASSES = ['solar_panel']
 preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
