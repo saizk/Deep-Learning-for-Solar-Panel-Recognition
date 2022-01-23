@@ -238,7 +238,7 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = "app/data"
+img_dir = "data"
 img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
 file_gts = {
@@ -314,7 +314,7 @@ def deploy1(uploaded_file, uploaded_mask=None):
     # create model
     # model = get_model(ARCHITECTURE, BACKBONE, n_classes, activation)
 
-    model = torch.load(f'{model_path}', map_location='cpu')
+    model = torch.load(model_path, map_location='cpu')
     # model = get_model(model_path)
 
     # st.write(uploaded_file)
@@ -456,7 +456,7 @@ def deploy2(selected_img_dir):
     else:
         gt_mask = None
 
-    selected_img = cv2.imread(selected_img_dir)
+    selected_img = cv2.cvtColor(cv2.imread(selected_img_dir), cv2.COLOR_BGR2RGB)
     image = cv2.resize(selected_img, (256, 256))
 
     with col1:  # visualize
