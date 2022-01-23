@@ -239,45 +239,18 @@ if uploaded_file is not None:
 st.sidebar.markdown("")
 
 img_dir = "data"
-testfiles = ['None',
-             "PV01_325206_1204151.png",
-             "PV01_325206_1204186.png",
-             "PV01_325574_1204564.png",
-             "PV01_325397_1203797.png",
-             "PV01_325595_1204553.png",
-             "PV03_315173_1194612.png",
-             "PV03_319105_1217778.png",
-             "PV08_332400_1179443.png",
-             "PV08_322597_1198445.png",
-             "tile_5_18.png",
-             "tile_9_4.png",
-             "tile_13_8.png",
-             "tile_21_10.png",
-
-             ]
+img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
 file_gts = {
-    "PV01_325206_1204151": "Zenodo",
-    "PV01_325206_1204186": "Zenodo",
-    "PV01_325574_1204564": "Zenodo",
-    "PV01_325397_1203797": "Zenodo",
-    "PV01_325595_1204553": "Zenodo",
-    "PV03_315173_1194612": "Zenodo",
-    "PV03_319105_1217778": "Zenodo",
-    "PV08_332400_1179443": "Zenodo",
-    "PV08_322597_1198445": "Zenodo",
-    "tile_5_18": 'GoogleMap',
-    "tile_9_4": 'GoogleMap',
-    "tile_13_8": 'GoogleMap',
-    "tile_21_10": 'GoogleMap',
-
+    img.replace('.png', ''): 'Zenodo'
+    for img in img_files
 }
 
 if uploaded_file is None:
     with st.sidebar.header('Use an image from our test set'):
         pre_trained_img = st.sidebar.selectbox(
             'Select an image',
-            testfiles,
+            img_files,
             format_func=lambda x: f'{x} ({(file_gts.get(x.replace(".png", "")))})' if ".png" in x else x,
             index=1,
         )
@@ -287,6 +260,7 @@ if uploaded_file is None:
 else:
     st.sidebar.markdown("Remove the file above first to use our images.")
 
+# define network parameters
 ARCHITECTURE = smp.DeepLabV3Plus
 BACKBONE = 'efficientnet-b3'
 EPOCHS = 25
@@ -295,25 +269,25 @@ model_dir = 'models'
 model_path = f'{model_dir}/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_{EPOCHS}ep.pth'
 CLASSES = ['solar_panel']
 preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
+n_classes = 1
+activation = 'sigmoid'
 
-models = [{'ARCHITECTURE': smp.DeepLabV3Plus, 'BACKBONE': 'efficientnet-b3', 'EPOCHS': 25},
-          {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'se_resnext101_32x4d', 'EPOCHS': 50},
-          {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'timm-resnest50d_4s2x40d', 'EPOCHS': 50},
-          {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'vgg19_bn', 'EPOCHS': 50}]
+models = {
+    'DeeplabV3Plus': {'ARCHITECTURE': smp.DeepLabV3Plus, 'BACKBONE': 'efficientnet-b3', 'EPOCHS': 25},
+    'UNET++Resnext101': {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'se_resnext101_32x4d', 'EPOCHS': 50},
+    'UNET++Resnest50d': {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'timm-resnest50d_4s2x40d', 'EPOCHS': 50},
+    'UNET++Vgg19-BN': {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'vgg19_bn', 'EPOCHS': 50}
+}
 
-models_code = {'DeeplabV3Plus': 0,
-               'UNET++Resnext101': 1,
-               'UNET++Resnest50d': 2,
-               'UNET++Vgg19-BN': 3}
-
-model_options = models_code.keys()
+model_options = models.keys()
 with st.sidebar.subheader('Select the model you want to use for prediction'):
-    model_sel = st.sidebar.selectbox('Select a model (architecture+backbone)',
-                                     model_options)
-
-    model = models[models_code[model_sel]]
+    model_sel = st.sidebar.selectbox(
+        'Select a model (architecture+backbone)',
+        model_options
+    )
+    model = models[model_sel]
     model_path = f'{model_dir}/{model["ARCHITECTURE"].__name__.lower()}_{model["BACKBONE"]}_{model["EPOCHS"]}ep.pth'
-    ARCHITECTURE = smp.DeepLabV3Plus
+    ARCHITECTURE = model['ARCHITECTURE']
     BACKBONE = model['BACKBONE']
     EPOCHS = model['EPOCHS']
     DEVICE = 'cpu'
@@ -325,21 +299,16 @@ st.sidebar.markdown("""
 ###
 ### Developers:
 
-- Daniel De Las Cuevas Turel
-- Ricardo Chavez Torres
-- Zijun He
 - Sergio Aizcorbe Pardo
+- Ricardo Chavez Torres
+- Daniel De Las Cuevas Turel
 - Sergio Hidalgo López
+- Zijun He
 
 """)
 
 # ---------------------------------#
 # Main panel
-
-# define network parameters
-n_classes = 1
-activation = 'sigmoid'
-
 
 def deploy1(uploaded_file, uploaded_mask=None):
     # create model
@@ -593,8 +562,8 @@ def deploy2(selected_img_dir):
         | B. Box | Top Left | Top Right | Bottom Left | Bottom Right |
         | --- | --- | --- | --- | --- |
         """ + "\n".join(
-            [f"| {i + 1} | {coor_values[i][0]} | {coor_values[i][1]} | {coor_values[i][2]} | {coor_values[i][3]} |" for
-             i in range(num_bboxes)])
+            [f"| {i + 1} | {coor_values[i][0]} | {coor_values[i][1]} | {coor_values[i][2]} | {coor_values[i][3]} |"
+             for i in range(num_bboxes)])
         st.markdown(mkd_pred_table, unsafe_allow_html=True)
 
     del model
@@ -606,6 +575,6 @@ if uploaded_file is not None:
         deploy1(uploaded_file, uploaded_mask)
     else:
         deploy1(uploaded_file)
+
 elif pre_trained_img != 'None':
-    print(selected_img_dir)
     deploy2(selected_img_dir)
