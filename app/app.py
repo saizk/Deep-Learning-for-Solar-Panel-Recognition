@@ -240,6 +240,9 @@ st.sidebar.markdown("")
 
 img_dir = '/deep-learning-for-solar-panel-recognition/app/data'  # Streamlit
 model_dir = '/deep-learning-for-solar-panel-recognition/app/models'  # Streamlit
+img_dir = os.path.join(os.getcwd(), 'app/data')
+model_dir = os.path.join(os.getcwd(), 'app/models')
+
 print(os.getcwd())
 # img_dir = 'data'
 # model_dir = 'models'
