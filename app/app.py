@@ -238,10 +238,12 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = 'app/data'
-model_dir = 'app/models'
-print(os.listdir('.'))
-print(os.getcwd())
+img_dir = 'app/deep-learning-for-solar-panel-recognition/app/data'  # Streamlit
+model_dir = 'app/deep-learning-for-solar-panel-recognition/app/models'  # Streamlit
+
+img_dir = 'data'
+model_dir = 'models'
+
 img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
 file_gts = {
