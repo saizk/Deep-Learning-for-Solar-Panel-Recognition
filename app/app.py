@@ -238,9 +238,9 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = 'app/deep-learning-for-solar-panel-recognition/app/data'  # Streamlit
-model_dir = 'app/deep-learning-for-solar-panel-recognition/app/models'  # Streamlit
-
+img_dir = '/app/deep-learning-for-solar-panel-recognition/app/data'  # Streamlit
+model_dir = '/app/deep-learning-for-solar-panel-recognition/app/models'  # Streamlit
+print(os.getcwd())
 # img_dir = 'data'
 # model_dir = 'models'
 
