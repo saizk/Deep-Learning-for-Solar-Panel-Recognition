@@ -238,7 +238,10 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = os.path.join('.', "data")
+img_dir = 'app/data'
+model_dir = 'app/models'
+print(os.listdir('.'))
+print(os.getcwd())
 img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
 file_gts = {
@@ -270,7 +273,6 @@ DEVICE = 'cpu'
 n_classes = len(CLASSES)
 preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
 
-model_dir = os.path.join('.', 'models')
 model_path = f'{model_dir}/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_{EPOCHS}ep.pth'
 
 models = {
