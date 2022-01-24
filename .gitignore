@@ -88,6 +88,8 @@ target/
 # Mypy cache
 .mypy_cache/
 
+reports
+
 src/_*.py
 src/tiles
 

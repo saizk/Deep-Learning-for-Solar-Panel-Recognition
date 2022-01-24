@@ -238,7 +238,7 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = "data"
+img_dir = os.path.join('.', "data")
 img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
 file_gts = {
@@ -261,16 +261,17 @@ else:
     st.sidebar.markdown("Remove the file above first to use our images.")
 
 # define network parameters
-ARCHITECTURE = smp.DeepLabV3Plus
-BACKBONE = 'efficientnet-b3'
+ARCHITECTURE = smp.UnetPlusPlus
+BACKBONE = 'se_resnext101_32x4d'
+CLASSES = ['solar_panel']
+activation = 'sigmoid'
 EPOCHS = 25
 DEVICE = 'cpu'
-model_dir = 'models'
-model_path = f'{model_dir}/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_{EPOCHS}ep.pth'
-CLASSES = ['solar_panel']
+n_classes = len(CLASSES)
 preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
-n_classes = 1
-activation = 'sigmoid'
+
+model_dir = os.path.join('.', 'models')
+model_path = f'{model_dir}/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_{EPOCHS}ep.pth'
 
 models = {
     'DeeplabV3Plus': {'ARCHITECTURE': smp.DeepLabV3Plus, 'BACKBONE': 'efficientnet-b3', 'EPOCHS': 25},
