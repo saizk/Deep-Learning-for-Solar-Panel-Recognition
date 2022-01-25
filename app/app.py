@@ -1,41 +1,48 @@
 import gc
 import os
-import copy
-import sklearn
-import cv2
 import torch
-import numpy as np
-import albumentations as A
-import skimage.measure as km
-import streamlit as st
 from pathlib import Path
-# from sklearn.metrics import jaccard_score
-from matplotlib import pyplot as plt
 
 import segmentation_models_pytorch as smp
-
-# ---------------------------------#
-# Page layout
-## Page expands to full width
-st.set_page_config(
-    page_title='Solar Panels Detection',
-    # anatomical heart favicon
-    page_icon="https://api.iconify.design/openmoji/solar-energy.svg?width=500",
-    layout='wide'
-)
-
-# PAge Intro
-st.write("""
-# :sunny: Solar Panel Detection
-Detect solar panels from satellite images with just one click!
-
-**You could upload your own image!**
--------
-""".strip())
-
+from utils import *
 
 # ---------------------------------#
 # Data preprocessing and Model building
+
+@st.cache(allow_output_mutation=True)
+def mask_read_local(gt_mask_dir):
+    gt_mask = cv2.imread(gt_mask_dir, cv2.IMREAD_GRAYSCALE)
+    gt_mask = cv2.threshold(gt_mask, 0, 255, cv2.THRESH_BINARY)[1]
+    gt_mask = cv2.resize(gt_mask, (256, 256))
+    return gt_mask
+
+
+@st.cache(allow_output_mutation=True)
+def mask_read_uploaded(uploaded_mask):
+    file_bytes = np.asarray(bytearray(uploaded_mask.read()), dtype=np.uint8)
+    uploaded_mask = cv2.imdecode(file_bytes, 1)
+    uploaded_mask = cv2.resize(uploaded_mask, (256, 256))
+    uploaded_mask = uploaded_mask[:, :, 0]
+    uploaded_mask = cv2.threshold(uploaded_mask, 0, 255, cv2.THRESH_BINARY)[1]
+    return uploaded_mask
+
+
+@st.cache(allow_output_mutation=True)
+def show_detection(image, pred_mask):
+    """
+
+    :param image: original image
+    :param pred_mask: predicted binary mask
+    :return: original image with detected solar panels colored
+    """
+
+    pred_mask = cv2.threshold(pred_mask, 0, 255, cv2.THRESH_BINARY)[1]
+
+    pred_mask = np.repeat(pred_mask[:, :, np.newaxis], 3, axis=2)
+    result = cv2.bitwise_and(image.astype('int'), pred_mask.astype('int'))
+
+    return result
+
 
 @st.cache(allow_output_mutation=True)
 def imgread_preprocessing(uploaded_img):  # final preprocessing function in streamlit
@@ -68,141 +75,24 @@ def imgread_preprocessing(uploaded_img):  # final preprocessing function in stre
     image = sample['image']
     return image
 
+# ---------------------------------#
+# Page layout
+## Page expands to full width
+st.set_page_config(
+    page_title='Solar Panels Detection',
+    # anatomical heart favicon
+    page_icon="https://api.iconify.design/openmoji/solar-energy.svg?width=500",
+    layout='wide'
+)
 
-@st.cache(allow_output_mutation=True)
-def mask_read_local(gt_mask_dir):
-    gt_mask = cv2.imread(gt_mask_dir, cv2.IMREAD_GRAYSCALE)
-    gt_mask = cv2.threshold(gt_mask, 0, 255, cv2.THRESH_BINARY)[1]
-    gt_mask = cv2.resize(gt_mask, (256, 256))
-    return gt_mask
+# PAge Intro
+st.write("""
+# :sunny: Solar Panel Detection
+Detect solar panels from satellite images with just one click!
 
-
-@st.cache(allow_output_mutation=True)
-def mask_read_uploaded(uploaded_mask):
-    file_bytes = np.asarray(bytearray(uploaded_mask.read()), dtype=np.uint8)
-    uploaded_mask = cv2.imdecode(file_bytes, 1)
-    uploaded_mask = cv2.resize(uploaded_mask, (256, 256))
-    uploaded_mask = uploaded_mask[:, :, 0]
-    uploaded_mask = cv2.threshold(uploaded_mask, 0, 255, cv2.THRESH_BINARY)[1]
-    return uploaded_mask
-
-
-@st.cache(allow_output_mutation=True)
-def compute_iou(gt_mask, pred_mask):
-    intersection = np.logical_and(pred_mask, gt_mask)
-    union = np.logical_or(pred_mask, gt_mask)
-    iou_score = np.round(np.sum(intersection) / np.sum(union), 2)
-    return iou_score
-
-
-@st.cache(allow_output_mutation=True)
-def compute_pixel_acc(gt_mask, pred_mask):
-    total = 256 ** 2
-    errors = (np.abs((pred_mask == 0).sum() - (gt_mask == 0).sum()) + np.abs(
-        (pred_mask != 0).sum() - (gt_mask != 0).sum()))
-    accuracy = np.round(1 - (errors / total), 3)
-    return accuracy
-
-
-@st.cache(allow_output_mutation=True)
-def compute_dice_coef(gt_mask, pred_mask):
-    intersection = np.sum(np.logical_and(pred_mask, gt_mask))
-    union = np.sum(np.logical_or(pred_mask, gt_mask)) + intersection
-    dice_coef = np.round(2 * intersection / union, 3)
-    return dice_coef
-
-
-@st.cache(allow_output_mutation=True)
-def show_detection(image, pred_mask):
-    """
-
-    :param image: original image
-    :param pred_mask: predicted binary mask
-    :return: original image with detected solar panels colored
-    """
-
-    pred_mask = cv2.threshold(pred_mask, 0, 255, cv2.THRESH_BINARY)[1]
-
-    pred_mask = np.repeat(pred_mask[:, :, np.newaxis], 3, axis=2)
-    result = cv2.bitwise_and(image.astype('int'), pred_mask.astype('int'))
-
-    return result
-
-
-@st.cache(allow_output_mutation=True)
-def compute_bboxes(image, pred_mask):
-    """
-
-    :param image:
-    :param pred_mask:
-    :return:
-    """
-    kernel = np.ones((5, 5), np.uint8)
-    pred_mask = cv2.morphologyEx(pred_mask, cv2.MORPH_OPEN, kernel)
-    labeled = km.label(pred_mask)
-    props = km.regionprops(labeled)
-    bboxes = set([p.bbox for p in props])
-    return bboxes
-
-
-@st.cache(allow_output_mutation=True)
-def draw_bbox(image, bboxes):
-    for box in bboxes:
-        image = cv2.rectangle(image, (box[1], box[0]), (box[3], box[2]), (255, 0, 0), 2)
-    return image
-
-
-@st.cache(allow_output_mutation=True)
-def return_coordinates(bboxes):
-    num_boxes = len(bboxes)
-    coordinate_dict = {}
-    for i in range(num_boxes):
-        box = list(bboxes)[i]
-        top_left = (box[1], box[0])
-        bottom_right = (box[3], box[2])
-        top_right = (box[3], box[0])
-        bottom_left = (box[1], box[2])
-        coordinate_dict[i] = [top_left, top_right, bottom_left, bottom_right]
-    return coordinate_dict
-
-
-@st.cache(allow_output_mutation=False, ttl=24 * 60 * 60)
-def get_model(model, backbone, n_classes, activation):
-    return model(backbone, classes=n_classes, activation=activation)
-
-
-@st.cache(allow_output_mutation=True)
-def get_test_augmentation():
-    """Add paddings to make image shape divisible by 32"""
-    test_transform = [
-        A.Resize(256, 256),
-        A.PadIfNeeded(256, 256)
-    ]
-    return A.Compose(test_transform)
-
-
-@st.cache(allow_output_mutation=True)
-def to_tensor(x, **kwargs):
-    return x.transpose(2, 0, 1).astype('float32')
-
-
-@st.cache(allow_output_mutation=True)
-def get_preprocessing(preprocessing_fn):
-    """Construct preprocessing transform
-
-    Args:
-        preprocessing_fn (callbale): data normalization function
-            (can be specific for each pretrained neural network)
-    Return:
-        transform: albumentations.Compose
-
-    """
-
-    _transform = [
-        A.Lambda(image=preprocessing_fn),
-        A.Lambda(image=to_tensor, mask=to_tensor),
-    ]
-    return A.Compose(_transform)
+**You could upload your own image!**
+-------
+""".strip())
 
 
 # Formatting ---------------------------------#
@@ -238,23 +128,34 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("")
 
-img_dir = '/deep-learning-for-solar-panel-recognition/app/data'  # Streamlit
-model_dir = '/deep-learning-for-solar-panel-recognition/app/models'  # Streamlit
-img_dir = os.path.join(os.getcwd(), 'app/data')
-model_dir = os.path.join(os.getcwd(), 'app/models')
-
-print(os.getcwd())
-# img_dir = 'data'
-# model_dir = 'models'
-
+img_dir = 'data'
 img_files = list(filter(lambda x: 'label' not in x, os.listdir(img_dir)))
 
-file_gts = {
-    img.replace('.png', ''): 'Zenodo'
-    for img in img_files
+model_dir = '../models'
+models = {
+    ' + '.join(get_model_info(model)[:2]).upper():
+        {'ARCH': get_model_info(model)[0],
+         'BACKBONE': get_model_info(model)[1],
+         'PATH': f'{model_dir}/{model}'}
+    for model in filter(lambda x: x.endswith('.pth'), os.listdir(model_dir))
 }
 
+# define network parameters
+ARCHITECTURE = smp.UnetPlusPlus
+BACKBONE = 'se_resnext101_32x4d'
+CLASSES = ['solar_panel']
+activation = 'sigmoid'
+EPOCHS = 25
+DEVICE = 'cpu'
+n_classes = len(CLASSES)
+preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
+
+
 if uploaded_file is None:
+    file_gts = {
+        img.replace('.png', ''): 'Zenodo'
+        for img in img_files
+    }
     with st.sidebar.header('Use an image from our test set'):
         pre_trained_img = st.sidebar.selectbox(
             'Select an image',
@@ -268,25 +169,6 @@ if uploaded_file is None:
 else:
     st.sidebar.markdown("Remove the file above first to use our images.")
 
-# define network parameters
-ARCHITECTURE = smp.UnetPlusPlus
-BACKBONE = 'se_resnext101_32x4d'
-CLASSES = ['solar_panel']
-activation = 'sigmoid'
-EPOCHS = 25
-DEVICE = 'cpu'
-n_classes = len(CLASSES)
-preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
-
-model_path = f'{model_dir}/{ARCHITECTURE.__name__.lower()}_{BACKBONE}_{EPOCHS}ep.pth'
-
-models = {
-    'DeeplabV3Plus': {'ARCHITECTURE': smp.DeepLabV3Plus, 'BACKBONE': 'efficientnet-b3', 'EPOCHS': 25},
-    'UNET++Resnext101': {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'se_resnext101_32x4d', 'EPOCHS': 50},
-    'UNET++Resnest50d': {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'timm-resnest50d_4s2x40d', 'EPOCHS': 50},
-    'UNET++Vgg19-BN': {'ARCHITECTURE': smp.UnetPlusPlus, 'BACKBONE': 'vgg19_bn', 'EPOCHS': 50}
-}
-
 model_options = models.keys()
 with st.sidebar.subheader('Select the model you want to use for prediction'):
     model_sel = st.sidebar.selectbox(
@@ -294,10 +176,9 @@ with st.sidebar.subheader('Select the model you want to use for prediction'):
         model_options
     )
     model = models[model_sel]
-    model_path = f'{model_dir}/{model["ARCHITECTURE"].__name__.lower()}_{model["BACKBONE"]}_{model["EPOCHS"]}ep.pth'
-    ARCHITECTURE = model['ARCHITECTURE']
+    model_path = model['PATH']
+    ARCH = model['ARCH']
     BACKBONE = model['BACKBONE']
-    EPOCHS = model['EPOCHS']
     DEVICE = 'cpu'
     preprocess_input = smp.encoders.get_preprocessing_fn(BACKBONE)
 
@@ -318,12 +199,12 @@ st.sidebar.markdown("""
 # ---------------------------------#
 # Main panel
 
+
 def deploy1(uploaded_file, uploaded_mask=None):
     # create model
-    # model = get_model(ARCHITECTURE, BACKBONE, n_classes, activation)
+    # model = get_model(ARCH, BACKBONE, n_classes, activation)
 
     model = torch.load(model_path, map_location='cpu')
-    # model = get_model(model_path)
 
     # st.write(uploaded_file)
     col1, col2, col3, col4 = st.columns((0.4, 0.4, 0.3, 0.3))
@@ -420,7 +301,7 @@ def deploy1(uploaded_file, uploaded_mask=None):
             st.write(f'**IoU score**: {iou_score}')
             pixel_acc = compute_pixel_acc(gt_mask, pr_mask)
             st.write(f'**Pixelwise accuracy**: {pixel_acc}')
-            dice_coef = compute_dice_coef(gt_mask, pr_mask)
+            dice_coef = compute_dice_coeff(gt_mask, pr_mask)
             st.write(f'**Dice Coefficient (F1 Score)**: {dice_coef}')
         else:
             st.write('Upload a mask if you want to check scores')
@@ -452,7 +333,7 @@ def deploy1(uploaded_file, uploaded_mask=None):
 
 def deploy2(selected_img_dir):
     # Load model
-    model = torch.load(model_path, map_location='cpu')
+    model = torch.load(Path(model_path), map_location='cpu')
 
     col1, col2, col3, col4 = st.columns((0.6, 0.6, 0.6, 0.6))
 
@@ -541,6 +422,7 @@ def deploy2(selected_img_dir):
                     mask_applied = show_detection(image, gt_mask)
                     mask_applied = cv2.resize(mask_applied, (256, 256))
                     st.image(mask_applied, caption='Ground Truth Mask applied')
+
     with col3:
         st.subheader('Model performance')
         if gt_mask is not None:
@@ -548,7 +430,7 @@ def deploy2(selected_img_dir):
             st.write(f'**IoU score**: {iou_score}')
             pixel_acc = compute_pixel_acc(gt_mask, pr_mask)
             st.write(f'**Pixelwise accuracy**: {pixel_acc}')
-            dice_coef = compute_dice_coef(gt_mask, pr_mask)
+            dice_coef = compute_dice_coeff(gt_mask, pr_mask)
             st.write(f'**Dice Coefficient (F1 Score)**: {dice_coef}')
         else:
             st.write('That image does not have a mask')
