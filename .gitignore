@@ -75,9 +75,6 @@ target/
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
-# exclude data from source control by default
-/data/
-
 # Mac OS-specific storage files
 .DS_Store
 
@@ -90,16 +87,9 @@ target/
 
 reports
 
-src/_*.py
-src/tiles
+data
 
-src/data/*.z*
-src/data/Solar Panels
-src/data/Buildings
-src/data/tiles*
-src/data/train
-src/data/val
-src/data/gmaps
+src/_*.py
 
 src/models/results
 

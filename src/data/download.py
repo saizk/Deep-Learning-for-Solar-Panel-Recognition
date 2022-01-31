@@ -37,67 +37,62 @@ def compute_centers(top_left, bottom_right):
     return centers
 
 
-def download_gmaps_api():
-    GMAPS_KEY = os.environ.get('GMAPS_KEY') or 'AIzaSyCmaQVinBWJKQb5EfJaavHa8kLBwmcbdXY'
-    PLACES = {
-        # 'mprincipe': [(40.4123, -3.854), (40.4054, -3.841)],
-        'leganes': [(40.34, -3.778), (40.337, -3.77)]
-    }
+def download_gmaps_api(places, folder=f'../../data'):
+    GMAPS_KEY = os.environ.get('GMAPS_KEY') or 'AIzaSyANDBmpvR7ax80k5pvPQBvVooKZEzzOEy0'
+    GMAPS_KEY = 'AIzaSyANDBmpvR7ax80k5pvPQBvVooKZEzzOEy0'
 
     api = GoogleMapsAPIDownloader(GMAPS_KEY)
 
-    for name, coords in PLACES.items():
+    for name, coords in places.items():
+
+        path = f'{folder}/{name}'
         centers = compute_centers(*coords)
-        print(f'Number of tiles: {len(centers)}x{len(centers[0])}')
+        print(f'Number of tiles: {len(centers)*len(centers[0])} ({len(centers)}x{len(centers[0])})')
 
-        folder, fformat = f'data/{name}', 'png'
-
-        # api.download_grid(centers, folder, split=True)
-        api.parallel_download_grid(
-            centers, folder, fformat,
-            size=(1280, 1280), zoom=19, scale=2,
-            split=True
+        # api.parallel_download_grid(
+        api.download_grid(
+            centers, path, split=True,
+            maptype='satellite',
+            format='png',
+            size=(1280, 1280),
+            zoom=19, scale=2,
         )
 
-    # folder = 'data/tiles_leganes'
-    # for img in os.listdir(folder):
-    #     api.split_tile(folder + '/' + img)
 
+def download_gmaps_web(places, folder='tiles'):
+    gmaps = GoogleMapsWebDownloader()
 
-def download_gmaps_web(folder='tiles', zoom=20):
-    madrid = np.array([(40.65, -4.082), (40.04794, -3.292)])
-    madrid_2 = np.array([(40.5, -3.94), (40.2, -3.5462)])
-    madrid_4 = np.array([(40.49, -3.84), (40.2775, -3.56)])
-    madrid_6 = np.array([(40.43, -3.74), (40.38, -3.68)])
-    # sp_madrid = [(40.413, -3.854), (40.403, -3.841)]
-    bajo_b = [(40.340092, -3.777754), (40.336984, -3.769861)]
-    coords = bajo_b
-    gmaps = GoogleMapsWebDownloader(
-        *coords,
-        zoom=zoom,
-        folder=folder,
-    )
+    for name, coords in places.items():
 
-    print('Downloading tiles...')
-    gmaps.download()
-    # gmaps.sharpen()
-    # print('Merging tiles...')
-    # gmaps.merge(r'.\tiles\merged.png')
+        path = f'{folder}/{name}'
+        gmaps.download(
+            *coords, folder=path,
+            zoom=19, style='s', format='png'
+        )
+
+        # print('Merging tiles...')
+        # gmaps.merge(r'.\tiles\merged.png')
 
 
 def main():
     # download_sent2()
 
-    download_gmaps_api()
+    folder = '../../data'
+    PLACES = {
+        # 'mprincipe': [(40.4123, -3.854), (40.4054, -3.841)],
+        'leganes': [(40.34, -3.778), (40.337, -3.77)]
+    }
 
-    # folder = 'data/tiles'
-    # start_time = time.time()
-    # download_gmaps_web(folder, zoom=19)
-    # final_time = time.time() - start_time
-    # total_files = len(os.listdir(folder))
-    # print(f'\nDownloaded files: {total_files}')
-    # print(f'{total_files / final_time} files/second')
-    # print(f'Elapsed time: {final_time}s')
+    # download_gmaps_api(PLACES, folder)
+
+    start_time = time.time()
+    download_gmaps_web(PLACES, folder)
+
+    final_time = time.time() - start_time
+    total_files = len(os.listdir(folder))
+    print(f'\nDownloaded files: {total_files}')
+    print(f'{total_files / final_time} files/second')
+    print(f'Elapsed time: {final_time}s')
 
 
 if __name__ == '__main__':
