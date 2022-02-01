@@ -87,7 +87,6 @@ target/
 
 reports
 
-data
 
 src/_*.py
 
@@ -108,3 +107,6 @@ src/models/yolo/yolov5/data/solar_panels/tiles*
 *.docx
 *.h5
 *.pth
+*.bmp
+*.png
+*.txt
