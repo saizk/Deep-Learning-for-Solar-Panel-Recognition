@@ -6,13 +6,11 @@ import googlemaps
 import multiprocessing as mp
 import urllib.request as ur
 
-
+from PIL import Image
 from pathlib import Path
-from PIL import Image, ImageEnhance
 from sentinelsat import SentinelAPI
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
-from gmaps import download_map_hd
 import utils
 
 
@@ -59,11 +57,9 @@ class GoogleMapsWebDownloader(object):
         pos1x, pos1y, pos2x, pos2y = utils.latlon2px(*top_left, *right_bottom, zoom)
         len_x, len_y = utils.get_region_size(pos1x, pos1y, pos2x, pos2y)
 
-        return [
-                   self.get_url(i, j, zoom, style)
-                   for j in range(pos1y, pos1y + len_y)
-                   for i in range(pos1x, pos1x + len_x)
-               ], (len_x, len_y)
+        return [self.get_url(i, j, zoom, style)
+                for j in range(pos1y, pos1y + len_y)
+                for i in range(pos1x, pos1x + len_x)], (len_x, len_y)
 
     def _request(self, url, name):
         _HEADERS = {
@@ -122,14 +118,6 @@ class GoogleMapsAPIDownloader(object):
         if split:
             self.split_tile(filename)
 
-    def _download_tiles(self, centers_and_files):
-        with ThreadPoolExecutor(max_workers=32) as pool:
-            tiles = list(pool.map(
-                lambda v: self.download_tile(center=v[0], filename=v[1], **v[2]),
-                centers_and_files)
-            )
-        return tiles
-
     def download_grid(self, centers, folder, split=False, **kwargs):
         path = Path(folder)
         path.mkdir(exist_ok=True, parents=True)
@@ -167,6 +155,14 @@ class GoogleMapsAPIDownloader(object):
             init_args[i:i + per_process]
             for i in range(0, len(init_args), per_process)
         ]
+
+    def _download_tiles(self, centers_and_files):
+        with ThreadPoolExecutor(max_workers=32) as pool:
+            tiles = list(pool.map(
+                lambda v: self.download_tile(center=v[0], filename=v[1], **v[2]),
+                centers_and_files)
+            )
+        return tiles
 
     @staticmethod
     def _gen_map_params(**kwargs):
