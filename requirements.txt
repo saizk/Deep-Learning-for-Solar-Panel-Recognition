@@ -24,3 +24,4 @@ tensorboard>=2.4.1
 albumentations>=1.1.0
 pycocotools==2.0.2
 
+pytorch-lightning==1.5.9

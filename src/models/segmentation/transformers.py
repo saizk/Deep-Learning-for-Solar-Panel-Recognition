@@ -1,4 +1,6 @@
+import torch
 import albumentations as A
+from torchvision import transforms
 
 
 def get_training_augmentation():  # define heavy augmentations
@@ -18,7 +20,7 @@ def get_training_augmentation():  # define heavy augmentations
         A.OneOf(
             [
                 A.CLAHE(p=1),
-                A.RandomBrightness(p=1),
+                A.RandomBrightnessContrast(p=1),
                 A.RandomGamma(p=1),
             ],
             p=0.9,
@@ -35,7 +37,7 @@ def get_training_augmentation():  # define heavy augmentations
 
         A.OneOf(
             [
-                A.RandomContrast(p=1),
+                A.RandomBrightnessContrast(p=1),
                 A.HueSaturationValue(p=1),
             ],
             p=0.9,
@@ -52,7 +54,11 @@ def get_validation_augmentation():
     return A.Compose(test_transform)
 
 
-def get_preprocessing(preprocessing_fn):
+def to_tensor(x, **kwargs):
+    return x.transpose(2, 0, 1).astype('float32')
+
+
+def get_preprocessing():  # preprocessing_fn, mean, std
     """Construct preprocessing transform
 
     Args:
@@ -62,8 +68,7 @@ def get_preprocessing(preprocessing_fn):
         transform: albumentations.Compose
 
     """
-
     _transform = [
-        A.Lambda(image=preprocessing_fn),
+        A.Lambda(image=to_tensor, mask=to_tensor),
     ]
     return A.Compose(_transform)

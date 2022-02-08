@@ -2,9 +2,22 @@ import os
 import cv2
 import numpy as np
 
+from torch.utils.data import Dataset
 
-class SolarPanelsDataset:
-    """CamVid Dataset. Read images, apply augmentation and preprocessing transformations.
+
+class BaseDataset(Dataset):
+
+    def __init__(self, images_dir):
+        self.ids = os.listdir(images_dir)
+        self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
+
+    def __len__(self):
+        return len(self.ids)
+
+
+class SolarPanelsDataset(BaseDataset):
+    """Dataset. Read images, apply augmentation and preprocessing transformations.
+
     Args:
         images_dir (str): path to images folder
         masks_dir (str): path to segmentation masks folder
@@ -13,6 +26,7 @@ class SolarPanelsDataset:
             (e.g. flip, scale, etc.)
         preprocessing (albumentations.Compose): data preprocessing
             (e.g. normalization, shape manipulation, etc.)
+
     """
 
     CLASSES = ['solar_panel']
@@ -25,8 +39,9 @@ class SolarPanelsDataset:
             augmentation=None,
             preprocessing=None,
     ):
-        self.ids = os.listdir(images_dir)
-        self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
+        super().__init__(images_dir)
+        # self.ids = os.listdir(images_dir)
+        # self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
         self.masks_fps = [os.path.join(masks_dir, image_id.split('.')[0] + '_label.png') for image_id in self.ids]
 
         # convert str names to class values on masks
@@ -36,11 +51,11 @@ class SolarPanelsDataset:
         self.preprocessing = preprocessing
 
     def __getitem__(self, i):
-
         # read data
-        image = cv2.imread(self.images_fps[i])
+        image, mask = cv2.imread(self.images_fps[i]), cv2.imread(self.masks_fps[i], 0)
+        print(image.shape)
+
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(self.masks_fps[i], 0)
         mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)[1]
 
         # extract certain classes from mask (e.g. cars)
@@ -64,5 +79,42 @@ class SolarPanelsDataset:
 
         return image, mask
 
-    def __len__(self):
-        return len(self.ids)
+
+class GoogleMapsDataset(BaseDataset):
+    """Dataset. Read images, apply augmentation and preprocessing transformations.
+
+    Args:
+        images_dir (str): path to images folder
+        augmentation (albumentations.Compose): data transformation pipeline
+            (e.g. flip, scale, etc.)
+        preprocessing (albumentations.Compose): data preprocessing
+            (e.g. normalization, shape manipulation, etc.)
+    """
+
+    def __init__(
+            self,
+            images_dir,
+            augmentation=None,
+            preprocessing=None,
+    ):
+        super().__init__(images_dir)
+        # self.ids = os.listdir(images_dir)
+        # self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
+
+        self.augmentation = augmentation
+        self.preprocessing = preprocessing
+
+    def __getitem__(self, i):
+
+        image = cv2.imread(self.images_fps[i])  # read data
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        if self.augmentation:  # apply augmentations
+            sample = self.augmentation(image=image)
+            image = sample['image']
+
+        if self.preprocessing:  # apply preprocessing
+            sample = self.preprocessing(image=image)
+            image = sample['image']
+
+        return image

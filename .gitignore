@@ -86,7 +86,7 @@ target/
 .mypy_cache/
 
 reports
-
+lightning_logs
 
 src/_*.py
 
