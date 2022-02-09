@@ -8,11 +8,11 @@ class SolarPanelsModel(pl.LightningModule):
     def __init__(self, arch, encoder, in_channels, out_classes, model_params, **kwargs):
         super().__init__()
         self.model = smp.create_model(
-            arch, encoder_name=encoder, in_channels=in_channels, classes=out_classes, **kwargs
+            arch, encoder_name=encoder,
+            in_channels=in_channels, classes=out_classes, **kwargs
         )
 
-        # preprocessing parameters for image
-        params = smp.encoders.get_preprocessing_params(encoder)
+        params = smp.encoders.get_preprocessing_params(encoder)  # preprocessing parameters for image
         self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
         self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
 
@@ -21,8 +21,7 @@ class SolarPanelsModel(pl.LightningModule):
         self.optimizer = model_params.get('optimizer')
 
     def forward(self, image):
-        # normalize image here
-        image = (image - self.mean) / self.std
+        image = (image - self.mean) / self.std  # normalize image here
         mask = self.model(image)
         return mask
 

@@ -59,30 +59,30 @@ __all__ = [
 
 
 def get_stats(
-    output: Union[torch.LongTensor, torch.FloatTensor],
-    target: torch.LongTensor,
+    output: Union[torch.Tensor, torch.FloatTensor],
+    target: torch.Tensor,
     mode: str,
     ignore_index: Optional[int] = None,
     threshold: Optional[Union[float, List[float]]] = None,
     num_classes: Optional[int] = None,
-) -> Tuple[torch.LongTensor]:
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Compute true positive, false positive, false negative, true negative 'pixels'
     for each image and each class.
 
     Args:
-        output (Union[torch.LongTensor, torch.FloatTensor]): Model output with following
+        output (Union[torch.Tensor, torch.FloatTensor]): Model output with following
             shapes and types depending on the specified ``mode``:
 
             'binary'
-                shape (N, 1, ...) and ``torch.LongTensor`` or ``torch.FloatTensor``
+                shape (N, 1, ...) and ``torch.Tensor`` or ``torch.FloatTensor``
 
             'multilabel'
-                shape (N, C, ...) and ``torch.LongTensor`` or ``torch.FloatTensor``
+                shape (N, C, ...) and ``torch.Tensor`` or ``torch.FloatTensor``
 
             'multiclass'
-                shape (N, ...) and ``torch.LongTensor``
+                shape (N, ...) and ``torch.Tensor``
 
-        target (torch.LongTensor): Targets with following shapes depending on the specified ``mode``:
+        target (torch.Tensor): Targets with following shapes depending on the specified ``mode``:
 
             'binary'
                 shape (N, 1, ...)
@@ -107,7 +107,7 @@ def get_stats(
         ValueError: in case of misconfiguration.
 
     Returns:
-        Tuple[torch.LongTensor]: true_positive, false_positive, false_negative,
+        Tuple[torch.Tensor]: true_positive, false_positive, false_negative,
             true_negative tensors (N, C) shape each.
 
     """
@@ -162,11 +162,11 @@ def get_stats(
 
 @torch.no_grad()
 def _get_stats_multiclass(
-    output: torch.LongTensor,
-    target: torch.LongTensor,
+    output: torch.Tensor,
+    target: torch.Tensor,
     num_classes: int,
     ignore_index: Optional[int],
-) -> Tuple[torch.LongTensor, torch.LongTensor, torch.LongTensor, torch.LongTensor]:
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
 
     batch_size, *dims = output.shape
     num_elements = torch.prod(torch.tensor(dims)).long()
@@ -203,9 +203,9 @@ def _get_stats_multiclass(
 
 @torch.no_grad()
 def _get_stats_multilabel(
-    output: torch.LongTensor,
-    target: torch.LongTensor,
-) -> Tuple[torch.LongTensor, torch.LongTensor, torch.LongTensor, torch.LongTensor]:
+    output: torch.Tensor,
+    target: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
 
     batch_size, num_classes, *dims = target.shape
     output = output.view(batch_size, num_classes, -1)
@@ -359,10 +359,10 @@ def _negative_likelihood_ratio(tp, fp, fn, tn):
 
 
 def fbeta_score(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     beta: float = 1.0,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
@@ -383,10 +383,10 @@ def fbeta_score(
 
 
 def f1_score(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -406,10 +406,10 @@ def f1_score(
 
 
 def iou_score(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -428,10 +428,10 @@ def iou_score(
 
 
 def accuracy(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -450,10 +450,10 @@ def accuracy(
 
 
 def sensitivity(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -472,10 +472,10 @@ def sensitivity(
 
 
 def specificity(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -494,10 +494,10 @@ def specificity(
 
 
 def balanced_accuracy(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -516,10 +516,10 @@ def balanced_accuracy(
 
 
 def positive_predictive_value(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -538,10 +538,10 @@ def positive_predictive_value(
 
 
 def negative_predictive_value(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -560,10 +560,10 @@ def negative_predictive_value(
 
 
 def false_negative_rate(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -582,10 +582,10 @@ def false_negative_rate(
 
 
 def false_positive_rate(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -604,10 +604,10 @@ def false_positive_rate(
 
 
 def false_discovery_rate(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -626,10 +626,10 @@ def false_discovery_rate(
 
 
 def false_omission_rate(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -648,10 +648,10 @@ def false_omission_rate(
 
 
 def positive_likelihood_ratio(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -670,10 +670,10 @@ def positive_likelihood_ratio(
 
 
 def negative_likelihood_ratio(
-    tp: torch.LongTensor,
-    fp: torch.LongTensor,
-    fn: torch.LongTensor,
-    tn: torch.LongTensor,
+    tp: torch.Tensor,
+    fp: torch.Tensor,
+    fn: torch.Tensor,
+    tn: torch.Tensor,
     reduction: Optional[str] = None,
     class_weights: Optional[List[float]] = None,
     zero_division: Union[str, float] = 1.0,
@@ -694,10 +694,10 @@ def negative_likelihood_ratio(
 _doc = """
 
     Args:
-        tp (torch.LongTensor): tensor of shape (N, C), true positive cases
-        fp (torch.LongTensor): tensor of shape (N, C), false positive cases
-        fn (torch.LongTensor): tensor of shape (N, C), false negative cases
-        tn (torch.LongTensor): tensor of shape (N, C), true negative cases
+        tp (torch.Tensor): tensor of shape (N, C), true positive cases
+        fp (torch.Tensor): tensor of shape (N, C), false positive cases
+        fn (torch.Tensor): tensor of shape (N, C), false negative cases
+        tn (torch.Tensor): tensor of shape (N, C), true negative cases
         reduction (Optional[str]): Define how to aggregate metric between classes and images:
 
             - 'micro'

@@ -1,3 +1,4 @@
+import torch
 import segmentation_models_pytorch as smp
 
 from model import SolarPanelsModel
@@ -5,7 +6,7 @@ from transformers import *
 from dataloader import *
 
 
-def train(params, device, verbose=True):
+def train(params, device):
     sp_module = SolarPanelsDataModule(
         data_dir=params['data_dir'],
         classes=params['classes'],

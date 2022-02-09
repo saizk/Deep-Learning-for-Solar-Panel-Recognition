@@ -21,12 +21,11 @@ class SolarPanelsDataset(BaseDataset):
     Args:
         images_dir (str): path to images folder
         masks_dir (str): path to segmentation masks folder
-        class_values (list): values of classes to extract from segmentation mask
+        classes (list): values of classes to extract from segmentation mask
         augmentation (albumentations.Compose): data transformation pipeline
             (e.g. flip, scale, etc.)
         preprocessing (albumentations.Compose): data preprocessing
             (e.g. normalization, shape manipulation, etc.)
-
     """
 
     CLASSES = ['solar_panel']
@@ -40,8 +39,6 @@ class SolarPanelsDataset(BaseDataset):
             preprocessing=None,
     ):
         super().__init__(images_dir)
-        # self.ids = os.listdir(images_dir)
-        # self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
         self.masks_fps = [os.path.join(masks_dir, image_id.split('.')[0] + '_label.png') for image_id in self.ids]
 
         # convert str names to class values on masks
@@ -51,9 +48,7 @@ class SolarPanelsDataset(BaseDataset):
         self.preprocessing = preprocessing
 
     def __getitem__(self, i):
-        # read data
-        image, mask = cv2.imread(self.images_fps[i]), cv2.imread(self.masks_fps[i], 0)
-        print(image.shape)
+        image, mask = cv2.imread(self.images_fps[i]), cv2.imread(self.masks_fps[i], 0)  # read data
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)[1]
@@ -67,13 +62,11 @@ class SolarPanelsDataset(BaseDataset):
             background = 1 - mask.sum(axis=-1, keepdims=True)
             mask = np.concatenate((mask, background), axis=-1)
 
-        # apply augmentations
-        if self.augmentation:
+        if self.augmentation:  # apply augmentations
             sample = self.augmentation(image=image, mask=mask)
             image, mask = sample['image'], sample['mask']
 
-        # apply preprocessing
-        if self.preprocessing:
+        if self.preprocessing:  # apply preprocessing
             sample = self.preprocessing(image=image, mask=mask)
             image, mask = sample['image'], sample['mask']
 
@@ -91,21 +84,12 @@ class GoogleMapsDataset(BaseDataset):
             (e.g. normalization, shape manipulation, etc.)
     """
 
-    def __init__(
-            self,
-            images_dir,
-            augmentation=None,
-            preprocessing=None,
-    ):
+    def __init__(self, images_dir, augmentation=None, preprocessing=None):
         super().__init__(images_dir)
-        # self.ids = os.listdir(images_dir)
-        # self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
-
         self.augmentation = augmentation
         self.preprocessing = preprocessing
 
     def __getitem__(self, i):
-
         image = cv2.imread(self.images_fps[i])  # read data
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
