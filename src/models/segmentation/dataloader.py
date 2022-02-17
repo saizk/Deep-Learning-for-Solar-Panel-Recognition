@@ -4,18 +4,23 @@ import pytorch_lightning as pl
 from typing import Optional
 from torch.utils.data import DataLoader
 
-import transformers
-from datasets import SolarPanelsDataset
+from datasets import SolarPanelsDataset, GoogleMapsDataset
+from transformers import *
 
 
-class SolarPanelsDataModule(pl.LightningDataModule):
+class BaseDataModule(pl.LightningDataModule):
 
-    def __init__(self, data_dir, classes, batch_size, num_workers):
+    def __init__(self, data_dir, batch_size=1, num_workers=2,
+                 train_augmentation=None, valid_augmentation=None, preprocessing=None):
         super().__init__()
         self.data_dir = data_dir
-        self.classes = classes
+
         self.batch_size = batch_size
         self.num_workers = num_workers
+
+        self.train_augmentation = train_augmentation
+        self.valid_augmentation = valid_augmentation
+        self.preprocessing = preprocessing
 
         self.train_dataset = None
         self.val_dataset = None
@@ -27,20 +32,29 @@ class SolarPanelsDataModule(pl.LightningDataModule):
         self.test_dataset = self.get_dataset('test')
 
     def get_dataset(self, phase):
+        pass
+
+    def get_augmentation(self, phase):
+        if phase == 'train':
+            return self.train_augmentation()
+        else:
+            return self.valid_augmentation()
+
+
+class SolarPanelsDataModule(BaseDataModule):
+
+    def __init__(self, classes, **kwargs):
+        super().__init__(**kwargs)
+        self.classes = classes
+
+    def get_dataset(self, phase):
         return SolarPanelsDataset(
             images_dir=os.path.join(self.data_dir, f'{phase}/images'),
             masks_dir=os.path.join(self.data_dir, f'{phase}/masks'),
             classes=self.classes,
             augmentation=self.get_augmentation(phase),
-            preprocessing=transformers.get_preprocessing(),
+            preprocessing=self.preprocessing()
         )
-
-    @staticmethod
-    def get_augmentation(phase):
-        if phase == 'train':
-            return transformers.get_training_augmentation()
-        else:
-            return transformers.get_validation_augmentation()
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
@@ -52,4 +66,22 @@ class SolarPanelsDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=1,
+                          shuffle=False, num_workers=self.num_workers)
+
+
+class GoogleMapsDataModule(BaseDataModule):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.inf_dataloader = self.get_dataset('val')
+
+    def get_dataset(self, phase):
+        return GoogleMapsDataset(
+            images_dir=self.data_dir,
+            augmentation=self.get_augmentation(phase),
+            preprocessing=self.preprocessing(),
+        )
+
+    def inference_dataloader(self):
+        return DataLoader(self.inf_dataloader, batch_size=1,
                           shuffle=False, num_workers=self.num_workers)

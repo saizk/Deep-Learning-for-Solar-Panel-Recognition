@@ -1,8 +1,8 @@
 import torch
 import segmentation_models_pytorch as smp
 
+import transformers
 from model import SolarPanelsModel
-from transformers import *
 from dataloader import *
 
 
@@ -10,6 +10,8 @@ def train(params, device):
     sp_module = SolarPanelsDataModule(
         data_dir=params['data_dir'],
         classes=params['classes'],
+        train_augmentation=params['train_augmentation'],
+        valid_augmentation=params['valid_augmentation'],
         batch_size=params['batch_size'],
         num_workers=params['num_workers'],
     )
@@ -24,12 +26,11 @@ def train(params, device):
     trainer.fit(model, datamodule=sp_module)
 
     valid_metrics = trainer.validate(model, datamodule=sp_module, verbose=False)
-    test_metrics = trainer.test(model, datamodule=sp_module, verbose=False)
 
     if not os.path.exists(params['model_name']):
         torch.save(trainer.model.state_dict(), params['model_name'])
 
-    return valid_metrics, test_metrics
+    return trainer, valid_metrics
 
 
 if __name__ == '__main__':
@@ -53,11 +54,12 @@ if __name__ == '__main__':
         'batch_size': 16,
         'num_workers': 4,
 
-        'train_augmentation': get_training_augmentation,
-        'val_augmentation': get_validation_augmentation,
+        'train_augmentation': transformers.get_training_augmentation,
+        'valid_augmentation': transformers.get_validation_augmentation,
+        'preprocessing': transformers.get_preprocessing,
 
         'loss': smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True),
         'optimizer': torch.optim.Adam
     }
-    metrics = train(model_params, device='cuda')
-    print(*metrics)
+    trainer, metrics = train(model_params, device='cuda')
+    print(metrics)

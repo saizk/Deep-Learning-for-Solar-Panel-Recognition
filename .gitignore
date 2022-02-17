@@ -101,6 +101,8 @@ src/models/yolo/yolov5/data/solar_panels/images
 src/models/yolo/yolov5/data/solar_panels/labels
 src/models/yolo/yolov5/data/solar_panels/tiles*
 
+src/models/segmentation/inference.py
+
 *.zip
 *.pt
 *.npy

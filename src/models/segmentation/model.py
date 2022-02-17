@@ -16,9 +16,9 @@ class SolarPanelsModel(pl.LightningModule):
         self.register_buffer("std", torch.tensor(params["std"]).view(1, 3, 1, 1))
         self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
 
-        self.lr = model_params.get('lr')
-        self.loss_fn = model_params.get('loss')
-        self.optimizer = model_params.get('optimizer')
+        self.lr = model_params.get('lr') or 0.0001
+        self.loss_fn = model_params.get('loss') or smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True),
+        self.optimizer = model_params.get('optimizer') or torch.optim.Adam
 
     def forward(self, image):
         image = (image - self.mean) / self.std  # normalize image here
