@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*
-import os
-import time
-
 from wrappers import *
+from utils import compute_centers
 
 
 def download_sent2(folder):
@@ -15,27 +13,8 @@ def download_sent2(folder):
     api.download('342c57d0-bde8-4391-90f6-a4192ba47a14', folder)
 
 
-def compute_centers(top_left, bottom_right):
-    centers = []
-    lat1, lon1 = top_left
-    lat2, lon2 = bottom_right
-
-    latmin, latmax = min(lat1, lat2), max(lat1, lat2)
-    lonmin, lonmax = min(lon1, lon2), max(lon1, lon2)
-
-    step_lat = 0.0012
-    step_lon = 0.0017
-
-    for lon in np.arange(lonmin, lonmax, step_lon):
-        row = [(lat, lon) for lat in np.arange(latmin, latmax, step_lat)]
-        centers.append(list(reversed(row)))
-
-    return centers
-
-
 def download_gmaps_api(places, folder='../../data'):
-    GMAPS_KEY = os.environ.get('GMAPS_KEY') or 'AIzaSyBMEUfUhYyqLw3C7-MZKnTqiquULqnc2l4'
-    GMAPS_KEY = 'AIzaSyBMEUfUhYyqLw3C7-MZKnTqiquULqnc2l4'
+    GMAPS_KEY = os.environ.get('GMAPS_KEY')
 
     gmaps = GoogleMapsAPIDownloader(GMAPS_KEY)
 
