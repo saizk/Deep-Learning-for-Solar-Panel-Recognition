@@ -22,19 +22,18 @@ def split_dataset(indices):
 
     for phase in ['train', 'test', 'val']:
         os.mkdir(f'images/{phase}')
-        os.mkdir(f'images/{phase}/images')
-        os.mkdir(f'images/{phase}/masks')
+        os.mkdir(f'masks/{phase}')
 
     for phase in indices.keys():
         for idx, (img, mask) in enumerate(zip(images, masks)):
             if idx in indices[phase]:
-                os.rename(f'images/{img}', f'images/{phase}/images/{img}')
-                os.rename(f'masks/{mask}', f'images/{phase}/masks/{mask}')
+                os.rename(img, f'images/{phase}/{img}')
+                os.rename(mask, f'masks/{phase}/{mask}')
 
 
 def convert_to_png_parallel(folder='solar_panels'):
     for phase in ['train', 'val', 'test']:
-        img_path, mask_path = f'{folder}/{phase}/images', f'{folder}/{phase}/masks'
+        img_path, mask_path = f'{folder}/images/{phase}', f'{folder}/masks/{phase}'
         with ThreadPoolExecutor(max_workers=64) as pool:
             images = pool.map(
                 lambda img: Image.open(img).resize((256, 256)).save(f'{img_path}/{Path(img).stem}.png'),
@@ -49,7 +48,7 @@ def convert_to_png_parallel(folder='solar_panels'):
 
 def remove_bmps():
     for phase in ['train', 'val', 'test']:
-        img_path, mask_path = f'images/{phase}/images', f'images/{phase}/masks'
+        img_path, mask_path = f'images/{phase}', f'masks/{phase}'
         for img, mask in zip(glob.glob(f'{img_path}/*.bmp'), glob.glob(f'{mask_path}/*.bmp')):
             os.remove(img)
             os.remove(mask)
