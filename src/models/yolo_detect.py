@@ -37,7 +37,7 @@ def compute_jaccard(box_a, box_b):
 
 
 def compute_labels_accuracy():
-    real_labels = glob.glob('yolov5/data/solar_panels/test/labels/*.txt')
+    real_labels = glob.glob('yolov5/data/solar_panels/labels/test/*.txt')
     predicted_labels = glob.glob('results/yolov5l_100/labels/*.txt')
     # predicted_labels = glob.glob('results/*/labels/*.txt')
     r_sum, p_sum = 0, 0
@@ -79,7 +79,7 @@ def main():
     mname = 'yolov5s_100'
     yolo_testing(
         name=f'{mname}_tiles2',
-        source='yolo/yolov5/data/solar_panels/test/images',  # yolov5/data/solar_panels/tiles2
+        source='yolo/yolov5/data/solar_panels/images/test',  # yolov5/data/solar_panels/tiles2
         project='results',
         model=f'models/{mname}/weights/best.pt',
         device=device
