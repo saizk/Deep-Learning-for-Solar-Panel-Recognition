@@ -9,14 +9,27 @@ Recognition of photovoltaic cells in aerial images with **Convolutional Neural N
 -----------
 With **pip**:
 ```
-pip3 install -r requirements.txt && pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
+pip install -r requirements.txt && pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 ```
 With **Anaconda**:
 ```
-pip3 install -r requirements.txt && conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+pip install -r requirements.txt && conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
 ```
 
-## 🔍 Data gathering
+## 💻 How to start?
+
+------------
+### OBJECT DETECTION
+1. Specify the location of the data in [sp_dataset.yaml](src/models/yolo/sp_dataset.yaml).
+2. Preprocess and generate annotations with [yolo_preprocess_data.py](src/features/yolo_preprocess_data.py) and [create_yolo_annotations.py](src/features/create_yolo_annotations.py) respectively.
+3. Run [yolo_train.py](src/models/yolo_train.py) for training. 
+4. Run [yolo_detect.py](src/models/yolo_detect.py) for inference.
+
+### SEGMENTATION
+1. Specify the structure of the data in [segmentation/datasets.py](src/models/segmentation/datasets.py)
+2. The code to train and run segmentation models can be found in the [notebooks section](notebooks).
+
+## 🔍 Data sources
 
 -----------
 * ### ☀ Solar Panels Dataset
@@ -44,15 +57,18 @@ pip3 install -r requirements.txt && conda install pytorch torchvision torchaudio
   * **YOLOv5-X:** 86.7 M parameters
 
   Architectures are based on [YOLOv5](https://github.com/ultralytics/yolov5) repository.
+  
+  Download all the models [here](https://drive.google.com/file/d/1GEHQtXrUb9BWRj-vIhw9Q_-pwVCqes8T/view?usp=sharing).
 
 * ### Image Segmentation
-  * **Unet++:** ~ 20 M parameters
-  * **FPN:** ~ 20 M parameters
-  * **DeepLabV3+:** ~ 20 M parameters
-  * **PSPNet:** ~ 20 M parameters
+  * **Unet++:** ~20 M parameters
+  * **FPN:** ~20 M parameters
+  * **DeepLabV3+:** ~20 M parameters
+  * **PSPNet:** ~20 M parameters
 
   Architectures are based on [segmentation_models.pytorch](https://github.com/qubvel/segmentation_models.pytorch) repository.
-
+  
+  Download all the models [here](https://drive.google.com/file/d/1189nDlaFQ5J1Z-XUxfAAORAz_ZHPIlrV/view?usp=sharing).
 
 ## 📈 Results
 
@@ -67,7 +83,6 @@ pip3 install -r requirements.txt && conda install pytorch torchvision torchaudio
 ------------
 
     ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
     ├── README.md          <- The top-level README for developers using this project.
     ├── data               <- Data for the project (ommited)
     ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
@@ -75,8 +90,8 @@ pip3 install -r requirements.txt && conda install pytorch torchvision torchaudio
     ├── models             <- Trained and serialized models, model predictions, or model summaries
     │
     ├── notebooks          <- Jupyter notebooks.
-    │        ├── pytorch_lightning.ipynb            <- Modeling with Pytorch Ligthning.
-    │        └── pytorch_sp_segmentation.ipynb      <- Modeling with vanilla Pytorch.
+    │        ├── segmentation_pytorch_lightning.ipynb     <- Segmentation modeling with Pytorch Ligthning.
+    │        └── segmentation_pytorch.ipynb               <- Segmentation modeling with vanilla Pytorch.
     │
     ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
     │
@@ -99,7 +114,7 @@ pip3 install -r requirements.txt && conda install pytorch torchvision torchaudio
     │       │
     │       ├── features       <- Scripts to turn raw data into features for modeling
     │       │       ├── create_yolo_annotations.py   <- Experimental script to create YOLO annotations.
-    │       │       └── preprocess_data.py           <- Script to process YOLO annotations.
+    │       │       └── yolo_preprocess_data.py      <- Script to process YOLO annotations.
     │       │
     │       ├── models         <- Scripts to train models and then use trained models to make predictions
     │       │       ├── segmentation  <- Image segmentation scripts to train Unet++, FPN, DLV3+ and PSPNet models.

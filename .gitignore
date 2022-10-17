@@ -95,12 +95,6 @@ src/models/yolo/models
 src/models/yolo/results
 src/models/yolo/wandb
 src/models/yolo/yolov5/runs
-src/models/yolo/yolov5/data/solar_panels/ground_truth
-src/models/yolo/yolov5/data/solar_panels/images
-src/models/yolo/yolov5/data/solar_panels/labels
-src/models/yolo/yolov5/data/solar_panels/tiles*
-
-src/models/segmentation/inference.py
 
 *.zip
 *.pt
