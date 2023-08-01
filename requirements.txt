@@ -19,7 +19,7 @@ opencv-python==4.5.4.58
 wheel>=0.37.0
 wandb>=0.12.6
 
-scipy==1.5.4
+scipy==1.10.0
 tensorboard>=2.4.1
 albumentations>=1.1.0
 pycocotools==2.0.2
