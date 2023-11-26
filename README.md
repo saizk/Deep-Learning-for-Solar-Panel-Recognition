@@ -5,9 +5,7 @@ Recognition of photovoltaic cells in aerial images with **Convolutional Neural N
 
 
 ## 💽 Installation + pytorch CUDA 11.3
-
------------
-With **pip**:
+Create a **Python 3.8** virtual environment and run the following command:
 ```
 pip install -r requirements.txt && pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 ```
