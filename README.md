@@ -56,7 +56,7 @@ pip install -r requirements.txt && conda install pytorch torchvision torchaudio 
 
   Architectures are based on [YOLOv5](https://github.com/ultralytics/yolov5) repository.
   
-  Download all the models [here](https://drive.google.com/file/d/1FrrcdcIcpOhittE4hj0zicsSNXhLExDu/view).
+  Download all the models [here](https://drive.google.com/file/d/1FrrcdcIcpOhittE4hj0zicsSNXhLExDu/view?usp=sharing).
 
 * ### Image Segmentation
   * **Unet++:** ~20 M parameters
@@ -66,7 +66,7 @@ pip install -r requirements.txt && conda install pytorch torchvision torchaudio 
 
   Architectures are based on [segmentation_models.pytorch](https://github.com/qubvel/segmentation_models.pytorch) repository.
   
-  Download all the models [here](https://drive.google.com/file/d/1189nDlaFQ5J1Z-XUxfAAORAz_ZHPIlrV/view).
+  Download all the models [here](https://drive.google.com/file/d/164opMqKximlcDJ524mxcmDis3kOqT-Mk/view?usp=sharing).
 
 ## 📈 Results
 
