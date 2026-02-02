@@ -37,7 +37,7 @@ def inference(model_path, params, save=False):
             pr_mask = (pr_mask.squeeze().numpy().round())
             post_mask = post_process(pr_mask)
             if save:
-                mask = overlap(image, mask)
+                mask = overlap(image, post_mask)
                 mask_img = Image.fromarray(mask)
                 mask_img.save(f'{params["data_dir"]}/plots{idx}.png')
                 visualize(image=image, mask=mask)
