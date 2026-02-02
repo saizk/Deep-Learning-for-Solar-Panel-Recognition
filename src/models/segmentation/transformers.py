@@ -57,12 +57,17 @@ def to_tensor(x, **kwargs):
     return x.transpose(2, 0, 1).astype('float32')
 
 
-def get_preprocessing():
+def get_preprocessing(encoder_name):
     """Construct preprocessing transform
     Return:
         transform: albumentations.Compose
     """
+    import segmentation_models_pytorch as smp
+    preprocessing_fn = smp.encoders.get_preprocessing_fn(encoder_name)
+    
     _transform = [
+        A.Lambda(image=preprocessing_fn),
         A.Lambda(image=to_tensor, mask=to_tensor),
     ]
     return A.Compose(_transform)
+
